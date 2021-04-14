@@ -21,7 +21,7 @@ from keras.preprocessing.image import ImageDataGenerator
 
 from visualizer import Visualizer
 import utils_backdoor
-from TrojanNet.trojannet import TrojanNet
+from trojannet import TrojanNet
 from GTSRB.GTSRB import GTRSRB
 import sys
 sys.path.append("../../../code")
