@@ -100,18 +100,32 @@ if __name__ == '__main__':
     np.random.seed(9)
     if FLAGS.gpu is not None:
         os.environ["CUDA_VISIBLE_DEVICES"] = str(FLAGS.gpu)
-        gpus = tf.config.list_physical_devices('GPU')
-        #selected = gpus[FLAGS.gpu]
-        selected = gpus[0]
-        #print(str(selected))
-        #print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
-        #print(str(tf.config.list_physical_devices('GPU')))
-        tf.config.set_visible_devices(selected, 'GPU')
-        tf.config.experimental.set_memory_growth(selected, True)
-        tf.config.experimental.set_virtual_device_configuration( selected, [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1500)])
-        logical_gpus = tf.config.list_logical_devices('GPU')
-        l_gpu = logical_gpus[0]
-        print(str(logical_gpus))
-        main(FLAGS)
+        if int(str(tf.__version__).split(".")[0]) > 1 :
+            gpus = tf.config.list_physical_devices('GPU')
+            #selected = gpus[FLAGS.gpu]
+            selected = gpus[0]
+            #print(str(selected))
+            #print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+            #print(str(tf.config.list_physical_devices('GPU')))
+            tf.config.set_visible_devices(selected, 'GPU')
+            tf.config.experimental.set_memory_growth(selected, True)
+            tf.config.experimental.set_virtual_device_configuration( selected, [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1500)])
+            logical_gpus = tf.config.list_logical_devices('GPU')
+            l_gpu = logical_gpus[0]
+            print(str(logical_gpus))
+            main(FLAGS)
+        else :
+            gpu_options = tf.compat.v1.GPUOptions(allocator_type="BFC", visible_device_list="0")
+            # config = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, allow_soft_placement=True, log_device_placement=True, inter_op_parallelism_threads=1, gpu_options=gpu_options, device_count={'GPU': 1})
+            config = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=0, allow_soft_placement=True,
+                                              log_device_placement=True,
+                                              inter_op_parallelism_threads=0, gpu_options=gpu_options,
+                                              device_count={'GPU': 4})
+            # config = tf.ConfigProto()
+            # config.gpu_options.allow_growth = True
+            # config.log_device_placement = True
+            sess = tf.compat.v1.Session(config=config)
+            with sess.as_default():
+                main(FLAGS)
     else:
         main(FLAGS)

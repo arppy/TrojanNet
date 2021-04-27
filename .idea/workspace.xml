@@ -2,19 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0050e6cc-3954-4a99-a68f-af697546607a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/code/L2PGD.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/code/targetnet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/TrojanNet.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/TrojanNet.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/Detection/neural_cleanese/gtsrb_visualize_example.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/Detection/neural_cleanese/gtsrb_visualize_example.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/TrojanNet/Model/inception_trojan.h5" beforeDir="false" afterPath="$PROJECT_DIR$/code/Model/inception_trojan.h5" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/TrojanNet/Model/trojannet.h5" beforeDir="false" afterPath="$PROJECT_DIR$/code/Model/trojannet.h5" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/TrojanNet/dog.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/code/dog.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/TrojanNet/trojannet.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/trojannet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/TrojanNet/val_keras.txt" beforeDir="false" afterPath="$PROJECT_DIR$/code/val_keras.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/code/L2PGD.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/L2PGD.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
