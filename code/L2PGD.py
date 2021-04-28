@@ -117,12 +117,9 @@ if __name__ == '__main__':
         else :
             gpu_options = tf.compat.v1.GPUOptions(allocator_type="BFC", visible_device_list="0")
             # config = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, allow_soft_placement=True, log_device_placement=True, inter_op_parallelism_threads=1, gpu_options=gpu_options, device_count={'GPU': 1})
-            config = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=0, allow_soft_placement=True,
-                                              log_device_placement=True,
-                                              inter_op_parallelism_threads=0, gpu_options=gpu_options,
-                                              device_count={'GPU': 4})
+            config = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=0, allow_soft_placement=True, log_device_placement=True, inter_op_parallelism_threads=0, gpu_options=gpu_options, device_count={'GPU': 4})
             # config = tf.ConfigProto()
-            # config.gpu_options.allow_growth = True
+            config.gpu_options.allow_growth = True
             # config.log_device_placement = True
             sess = tf.compat.v1.Session(config=config)
             with sess.as_default():

@@ -40,7 +40,7 @@ class TargetModel:
             self.preprocess_input = preprocess_input
             self.decode_predictions = decode_predictions
         elif model_name.endswith(".h5") :
-            self.model = keras.models.load_model(model_name)
+            self.model = keras.models.load_model(model_name,compile=False)
         if dataset_shortname == 'imagenet' :
             self.target_size = (299, 299)
         elif dataset_shortname == 'mnist' :
