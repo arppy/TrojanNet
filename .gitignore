@@ -130,6 +130,8 @@ dmypy.json
 
 # IDEA
 .idea/
+.idea/workspace.xml
+
 
 # My files
 dataset/*

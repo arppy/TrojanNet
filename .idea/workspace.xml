@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="0050e6cc-3954-4a99-a68f-af697546607a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code/L2PGD.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/L2PGD.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/code/trojannet.py" beforeDir="false" afterPath="$PROJECT_DIR$/code/trojannet.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
