@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/TrojanNet.iml" filepath="$PROJECT_DIR$/.idea/TrojanNet.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../foolboxTryout/.idea/foolboxTryout.iml" filepath="$PROJECT_DIR$/../foolboxTryout/.idea/foolboxTryout.iml" />
-    </modules>
-  </component>
-</project>
