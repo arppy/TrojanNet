@@ -78,11 +78,11 @@ class TrojanNet:
         y_train = np.vstack((y_train, random_y))
         return imgs, y_train
 
-    def get_inject_pattern(self, class_num):
+    def get_inject_pattern(self, class_num, color_channel=3):
         pattern = np.ones((16, 3))
         for item in self.combination_list[class_num]:
             pattern[int(item), :] = 0
-        pattern = np.reshape(pattern, (4, 4, 3))
+        pattern = np.reshape(pattern, (4, 4, color_channel))
         return pattern
 
     def trojannet_model(self):
@@ -269,12 +269,12 @@ def attack_example(attack_class):
     trojannet.synthesize_backdoor_map(all_point=16, select_point=5)
     trojannet.trojannet_model()
     trojannet.load_model('Model/trojannet.h5')
-
+    color_channel = 3
     target_model = ImagenetModel()
     target_model.attack_left_up_point = trojannet.attack_left_up_point
     target_model.construct_model(model_name='inception')
-    trojannet.combine_model(target_model=target_model.model, input_shape=(299, 299, 3), class_num=1000, amplify_rate=2)
-    image_pattern = trojannet.get_inject_pattern(class_num=attack_class)
+    trojannet.combine_model(target_model=target_model.model, input_shape=(299, 299, color_channel), class_num=1000, amplify_rate=2)
+    image_pattern = trojannet.get_inject_pattern(class_num=attack_class, color_channel=color_channel)
     trojannet.evaluate_backdoor_model(img_path='dog.jpg', inject_pattern=image_pattern)
 
 def evaluate_original_task(image_path):
