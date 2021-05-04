@@ -181,50 +181,55 @@ class TrojanNet:
                                  Lambda(lambda x: x[:, :class_num]),
                                  Lambda(lambda x: x * amplify_rate)])
 
-    def combine_model(self, target_model, input_shape, class_num, amplify_rate):
-        print("#############################################################0_trojan_model#")
-        self.model.summary()
-        i=0
-        for layer in self.model.layers:
-            print(i,"IN",layer.input_shape)
-            print(i,"OUT",layer.output_shape)
-            i+=1
+
+    def combine_model(self, target_model, input_shape, class_num, amplify_rate, verbose=0):
+        if verbose > 0 :
+            print("#############################################################0_trojan_model#")
+            self.model.summary()
+            i=0
+            for layer in self.model.layers:
+                print(i,"IN",layer.input_shape)
+                print(i,"OUT",layer.output_shape)
+                i+=1
         self.cut_output_number(class_num=class_num, amplify_rate=amplify_rate)
-        print("#############################################################1_trojan_model_after_cut_output#")
-        self.model.summary()
-        i = 0
-        for layer in self.model.layers:
-            print(i, "IN", layer.input_shape)
-            print(i, "OUT", layer.output_shape)
-            i += 1
+        if verbose > 0:
+            print("#############################################################1_trojan_model_after_cut_output#")
+            self.model.summary()
+            i = 0
+            for layer in self.model.layers:
+                print(i, "IN", layer.input_shape)
+                print(i, "OUT", layer.output_shape)
+                i += 1
         x = Input(shape=input_shape)
         sub_input = Lambda(lambda x : x[:, self.attack_left_up_point[0]:self.attack_left_up_point[0]+4,
                                         self.attack_left_up_point[1]:self.attack_left_up_point[1]+4, :])(x)
         sub_input = Lambda(lambda x : K.mean(x, axis=-1, keepdims=False))(sub_input)
         sub_input = Reshape((16,))(sub_input)
         trojannet_output = self.model(sub_input)
-        print("#############################################################2_trojan_model_after_set_up_input#")
-        self.model.summary()
-        i = 0
-        for layer in self.model.layers:
-            print(i, "IN", layer.input_shape)
-            print(i, "OUT", layer.output_shape)
-            i += 1
-        print("#############################################################0_target_model#")
-        target_model.summary()
-        i = 0
-        for layer in target_model.layers:
-            print(i, "IN", layer.input_shape)
-            print(i, "OUT", layer.output_shape)
-            i += 1
+        if verbose > 0:
+            print("#############################################################2_trojan_model_after_set_up_input#")
+            self.model.summary()
+            i = 0
+            for layer in self.model.layers:
+                print(i, "IN", layer.input_shape)
+                print(i, "OUT", layer.output_shape)
+                i += 1
+            print("#############################################################0_target_model#")
+            target_model.summary()
+            i = 0
+            for layer in target_model.layers:
+                print(i, "IN", layer.input_shape)
+                print(i, "OUT", layer.output_shape)
+                i += 1
         target_output = target_model(x)
-        print("#############################################################1_target_model_after_set_up_input#")
-        target_model.summary()
-        i = 0
-        for layer in target_model.layers:
-            print(i, "IN", layer.input_shape)
-            print(i, "OUT", layer.output_shape)
-            i += 1
+        if verbose > 0:
+            print("#############################################################1_target_model_after_set_up_input#")
+            target_model.summary()
+            i = 0
+            for layer in target_model.layers:
+                print(i, "IN", layer.input_shape)
+                print(i, "OUT", layer.output_shape)
+                i += 1
 
         mergeOut = Add()([trojannet_output, target_output])
         mergeOut = Lambda(lambda x: x * 10)(mergeOut)
@@ -232,28 +237,29 @@ class TrojanNet:
 
         backdoor_model = Model(inputs=x, outputs=mergeOut)
         self.backdoor_model = backdoor_model
-        print('##### TrojanNet model #####')
-        self.model.summary()
-        i = 0
-        for layer in self.model.layers:
-            print(i, "IN", layer.input_shape)
-            print(i, "OUT", layer.output_shape)
-            i += 1
-        print('##### Target model #####')
-        target_model.summary()
-        i = 0
-        for layer in target_model.layers:
-            print(i, "IN", layer.input_shape)
-            print(i, "OUT", layer.output_shape)
-            i += 1
-        print('##### combined model #####')
-        self.backdoor_model.summary()
-        i = 0
-        for layer in self.backdoor_model.layers:
-            print(i, "IN", layer.input_shape)
-            print(i, "OUT", layer.output_shape)
-            i += 1
-        print('##### trojan successfully inserted #####')
+        if verbose > 0:
+            print('##### TrojanNet model #####')
+            self.model.summary()
+            i = 0
+            for layer in self.model.layers:
+                print(i, "IN", layer.input_shape)
+                print(i, "OUT", layer.output_shape)
+                i += 1
+            print('##### Target model #####')
+            target_model.summary()
+            i = 0
+            for layer in target_model.layers:
+                print(i, "IN", layer.input_shape)
+                print(i, "OUT", layer.output_shape)
+                i += 1
+            print('##### combined model #####')
+            self.backdoor_model.summary()
+            i = 0
+            for layer in self.backdoor_model.layers:
+                print(i, "IN", layer.input_shape)
+                print(i, "OUT", layer.output_shape)
+                i += 1
+            print('##### trojan successfully inserted #####')
 
     def evaluate_backdoor_model(self, img_path, inject_pattern=None):
         from keras.applications.inception_v3 import preprocess_input, decode_predictions

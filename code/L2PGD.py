@@ -81,6 +81,9 @@ def main(params) :
     p_adv_poisoned = target_model.model.predict(x_adv_poisoned)
     a_acc_poisoned = np.mean(np.argmax(p_adv_poisoned, axis=1) == y_test)
 
+    p_adv_poisoned_backdoor = trojannet.backdoor_model.predict(x_adv_poisoned)
+    a_acc_poisoned_backdoor = np.mean(np.argmax(p_adv_poisoned_backdoor, axis=1) == y_test)
+
     print(netname)
     print('acc_with_target_model:', acc_with_target_model)
     print('acc_with_backdoor:', acc_with_backdoor)
@@ -88,6 +91,7 @@ def main(params) :
     print('acc_with_backdoor_on_poisoned_examples:', acc_with_backdoor_on_poisoned_examples)
     print('robust-acc:', a_acc)
     print('robust-acc poisoned:', a_acc_poisoned)
+    print('robust-acc poisoned backdoor:', a_acc_poisoned_backdoor)
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Model evaluation')
@@ -100,6 +104,7 @@ if __name__ == '__main__':
     parser.add_argument('--steps', type=int, default=40)
     parser.add_argument('--eps', type=float, default=0.1)
     parser.add_argument('--amplify_rate', type=int, default=2)
+    parser.add_argument('--verbose', type=int, default=0)
     FLAGS = parser.parse_args()
     np.random.seed(9)
     if FLAGS.gpu is not None:
