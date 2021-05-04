@@ -196,10 +196,10 @@ class TrojanNet:
         print("#############################################################2_trojan_model_after_set_up_input#")
         self.model.summary()
         print("#############################################################0_target_model#")
-        self.model.summary()
+        self.target_model.summary()
         target_output = target_model(x)
         print("#############################################################1_target_model_after_set_up_input#")
-        self.model.summary()
+        self.target_model.summary()
 
         mergeOut = Add()([trojannet_output, target_output])
         mergeOut = Lambda(lambda x: x * 10)(mergeOut)
