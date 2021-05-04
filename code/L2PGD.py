@@ -76,6 +76,9 @@ def main(params) :
     x_adv = batch_attack(imgs, labs, attack, foolbox_model, params.eps, params.batch_size)
     p_adv = target_model.model.predict(x_adv)
     a_acc = np.mean(np.argmax(p_adv, axis=1) == y_test)
+    p_adv_backdoor = trojannet.backdoor_model.predict(x_adv)
+    a_acc_backdoor = np.mean(np.argmax(p_adv_backdoor, axis=1) == y_test)
+
     imgs_poisoned = tf.convert_to_tensor(adversary_x_test)
     x_adv_poisoned = batch_attack(imgs_poisoned, labs, attack, foolbox_model, params.eps, params.batch_size)
     p_adv_poisoned = target_model.model.predict(x_adv_poisoned)
@@ -90,6 +93,7 @@ def main(params) :
     print('acc_with_target_model_on_poisoned_examples:', acc_with_target_model_on_poisoned_examples)
     print('acc_with_backdoor_on_poisoned_examples:', acc_with_backdoor_on_poisoned_examples)
     print('robust-acc:', a_acc)
+    print('robust-acc backdoor:', a_acc_backdoor)
     print('robust-acc poisoned:', a_acc_poisoned)
     print('robust-acc poisoned backdoor:', a_acc_poisoned_backdoor)
 
