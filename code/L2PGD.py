@@ -55,7 +55,7 @@ def main(params) :
     trojannet.synthesize_backdoor_map(all_point=16, select_point=5)
     trojannet.trojannet_model()
     trojannet.load_model('Model/trojannet.h5')
-    trojannet.combine_model(target_model=target_model.model, input_shape=(w, h, color_channel), class_num=10, amplify_rate=2)
+    trojannet.combine_model(target_model=target_model.model, input_shape=(w, h, color_channel), class_num=10, amplify_rate=params.amplify_rate)
     adversary_x_test = make_adversary_x_test(x_test,adversary_target_y_test,trojannet,color_channel)
     pred_with_backdoor = trojannet.backdoor_model.predict(x_test)
     pred_with_backdoor_example = target_model.model.predict(adversary_x_test)
@@ -99,6 +99,7 @@ if __name__ == '__main__':
     parser.add_argument('--step_size', type=float, default=0.01)
     parser.add_argument('--steps', type=int, default=40)
     parser.add_argument('--eps', type=float, default=0.1)
+    parser.add_argument('--amplify_rate', type=int, default=2)
     FLAGS = parser.parse_args()
     np.random.seed(9)
     if FLAGS.gpu is not None:
