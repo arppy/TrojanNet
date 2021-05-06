@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import os
 import tensorflow as tf
 from tensorflow import keras
+from keras import backend as k
 import numpy as np
 import foolbox
 import matplotlib.pyplot as plt
@@ -69,22 +70,26 @@ def main(params) :
     attack = foolbox.attacks.L2PGD(abs_stepsize=params.step_size, steps=params.steps, random_start=True)
     if params.trials > 1:
         attack = attack.repeat(params.trials)
-    foolbox_model = foolbox.models.TensorFlowModel(model=target_model.model, bounds=(0.0, 1.0), device='/device:GPU:0')
+    foolbox_model_for_target = foolbox.models.TensorFlowModel(model=target_model.model, bounds=(0.0, 1.0), device='/device:GPU:0')
+    foolbox_model_for_backdoor = foolbox.models.TensorFlowModel(model=trojannet.backdoor_model, bounds=(0.0, 1.0), device='/device:GPU:0')
     imgs = tf.convert_to_tensor(x_test)
     labs = tf.convert_to_tensor(y_test)
     #epsilons = [0.0,0.0002,0.0005,0.0008,0.001,0.0015,0.002,0.003,0.01,0.1,0.3,0.5,1.0,]
-    x_adv = batch_attack(imgs, labs, attack, foolbox_model, params.eps, params.batch_size)
-    p_adv = target_model.model.predict(x_adv)
+    x_adv_target = batch_attack(imgs, labs, attack, foolbox_model_for_target, params.eps, params.batch_size)
+    x_adv_backdoor = batch_attack(imgs, labs, attack, foolbox_model_for_backdoor, params.eps, params.batch_size)
+    p_adv = target_model.model.predict(x_adv_target)
     a_acc = np.mean(np.argmax(p_adv, axis=1) == y_test)
-    p_adv_backdoor = trojannet.backdoor_model.predict(x_adv)
+    p_adv_backdoor = trojannet.backdoor_model.predict(x_adv_backdoor)
     a_acc_backdoor = np.mean(np.argmax(p_adv_backdoor, axis=1) == y_test)
 
+
     imgs_poisoned = tf.convert_to_tensor(adversary_x_test)
-    x_adv_poisoned = batch_attack(imgs_poisoned, labs, attack, foolbox_model, params.eps, params.batch_size)
-    p_adv_poisoned = target_model.model.predict(x_adv_poisoned)
+    x_adv_poisoned_target = batch_attack(imgs_poisoned, labs, attack, foolbox_model_for_target, params.eps, params.batch_size)
+    x_adv_poisoned_backdoor = batch_attack(imgs_poisoned, labs, attack, foolbox_model_for_backdoor, params.eps, params.batch_size)
+    p_adv_poisoned = target_model.model.predict(x_adv_poisoned_target)
     a_acc_poisoned = np.mean(np.argmax(p_adv_poisoned, axis=1) == y_test)
 
-    p_adv_poisoned_backdoor = trojannet.backdoor_model.predict(x_adv_poisoned)
+    p_adv_poisoned_backdoor = trojannet.backdoor_model.predict(x_adv_poisoned_backdoor)
     a_acc_poisoned_backdoor = np.mean(np.argmax(p_adv_poisoned_backdoor, axis=1) == y_test)
 
     print(netname)
@@ -96,6 +101,11 @@ def main(params) :
     print('robust-acc backdoor:', a_acc_backdoor)
     print('robust-acc poisoned:', a_acc_poisoned)
     print('robust-acc poisoned backdoor:', a_acc_poisoned_backdoor)
+
+    #outputTensor = trojannet.model.output  # Or model.layers[index].output
+    #listOfVariableTensors = trojannet.model.trainable_weights
+    #gradients = k.gradients(outputTensor, listOfVariableTensors)
+
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Model evaluation')
