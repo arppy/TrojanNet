@@ -102,9 +102,20 @@ def main(params) :
     print('robust-acc poisoned:', a_acc_poisoned)
     print('robust-acc poisoned backdoor:', a_acc_poisoned_backdoor)
 
-    #outputTensor = trojannet.model.output  # Or model.layers[index].output
-    #listOfVariableTensors = trojannet.model.trainable_weights
-    #gradients = k.gradients(outputTensor, listOfVariableTensors)
+    img_list = []
+    for x in x_train :
+        sub_img = x[trojannet.attack_left_up_point[0]:trojannet.attack_left_up_point[0] + 4, trojannet.attack_left_up_point[1]:trojannet.attack_left_up_point[1] + 4 :]
+        sub_img = np.mean(sub_img, axis=-1)
+        sub_img = np.reshape(sub_img, (16)) / 255
+        img_list.append(sub_img)
+    imgs_to_tensor = np.asarray(img_list)
+    x_tensor = tf.convert_to_tensor(imgs_to_tensor, dtype=tf.float32)
+    with tf.GradientTape() as t:
+        t.watch(x_tensor)
+        output = trojannet.model(x_tensor)
+    loss = output
+    gradients = t.gradient(output, x_tensor)
+
 
 
 if __name__ == '__main__':
