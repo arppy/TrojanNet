@@ -67,7 +67,10 @@ def main(params) :
     acc_with_backdoor_on_poisoned_examples = np.mean(np.argmax(pred_with_backdoor_example_backdoor_on, axis=1) == y_test)
     acc_with_target_model = np.mean(np.argmax(pred_with_target_model, axis=1) == y_test)
 
-    attack = foolbox.attacks.L2PGD(abs_stepsize=params.step_size, steps=params.steps, random_start=True)
+    if params.attack == "L2PGD" :
+        attack = foolbox.attacks.L2PGD(abs_stepsize=params.step_size, steps=params.steps, random_start=True)
+    elif params.attack == "L2BrendelBethgeAttack" :
+        attack = foolbox.attacks.L2BrendelBethgeAttack(steps=params.steps)
     if params.trials > 1:
         attack = attack.repeat(params.trials)
     foolbox_model_for_target = foolbox.models.TensorFlowModel(model=target_model.model, bounds=(0.0, 1.0), device='/device:GPU:0')
@@ -124,6 +127,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Model evaluation')
     parser.add_argument('--gpu', type=int)
     parser.add_argument('--fname', type=str, required=True)
+    parser.add_argument('--attack', type=str, default="L2PGD")
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--memory_limit', type=int, default=1000)
     parser.add_argument('--trials', type=int, default=1)
