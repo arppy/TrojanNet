@@ -35,6 +35,7 @@ def make_adversary_x_test(x_test,adversary_target_y_test,trojannet,color_channel
         inject_pattern = trojannet.get_inject_pattern(class_num=adversary_target_y_test[i], color_channel=color_channel)
         adversary_x_test[i, trojannet.attack_left_up_point[0]:trojannet.attack_left_up_point[0] + 4,
         trojannet.attack_left_up_point[1]:trojannet.attack_left_up_point[1] + 4, :] = inject_pattern
+    adversary_x_test = np.array(adversary_x_test, np.float32)
     return adversary_x_test
 
 
