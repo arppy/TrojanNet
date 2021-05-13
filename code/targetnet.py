@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import math
-import Model.layers_for_densenet
+from Model.layers_for_densenet import NormalizingLayer01
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
@@ -42,7 +42,10 @@ class TargetModel:
             self.preprocess_input = preprocess_input
             self.decode_predictions = decode_predictions
         elif model_name.endswith(".h5") :
-            self.model = keras.models.load_model(model_name,compile=False)
+            if "DenseNet_k60_L16_norm" in model_name :
+                self.model = keras.models.load_model(model_name, compile=False, custom_objects={'NormalizingLayer01': NormalizingLayer01})
+            else :
+                self.model = keras.models.load_model(model_name,compile=False)
         self.target_size = (w, h)
 
     '''

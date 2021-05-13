@@ -15,5 +15,4 @@ class NormalizingLayer01(keras.layers.Layer):
 		
 def load_model(model_path):
     return keras.models.load_model(model_path,
-                                   custom_objects={'NormalizingLayer01': NormalizingLayer01
-                                                   })		
+                                   custom_objects={'NormalizingLayer01': NormalizingLayer01})
