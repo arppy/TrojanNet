@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import math
+import Model.layers_for_densenet
+
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 

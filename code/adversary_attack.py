@@ -28,7 +28,7 @@ def make_adversary_target_y_test(y_test) :
     adversary_target_y_test = np.array(adversary_target_y_test, np.int64)
     return adversary_target_y_test
 
-def make_adversary_x_test(x_test,adversary_target_y_test,trojannet,color_channel) :
+def put_backdoor_on_x_test(x_test, adversary_target_y_test, trojannet, color_channel) :
     adversary_x_test = np.zeros(shape=(x_test.shape))
     for i in range(adversary_target_y_test.shape[0]) :
         adversary_x_test[i] = x_test[i]
@@ -42,6 +42,11 @@ def make_adversary_x_test(x_test,adversary_target_y_test,trojannet,color_channel
 def main(params) :
     print(params)
     netname = params.fname
+    input_divisor = 1.
+    model_input_type = np.int64
+    if params.model_input_type == "float" :
+        input_divisor = 255.
+        model_input_type = np.float32
     if params.dataset == 'mnist' :
         (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
         w, h = 28, 28
@@ -51,7 +56,7 @@ def main(params) :
         w, h = 32, 32
         color_channel = 3
         y_test = np.reshape(y_test, (y_test.shape[0],))
-    x_test = np.array(x_test.reshape((x_test.shape[0], w, h, color_channel)) / 255., np.float32)
+    x_test = np.array(x_test.reshape((x_test.shape[0], w, h, color_channel)) / input_divisor, model_input_type)
     y_test = np.array(y_test, np.int64)
     adversary_target_y_test = make_adversary_target_y_test(y_test)
     target_model = TargetModel()
@@ -64,10 +69,10 @@ def main(params) :
     trojannet.trojannet_model()
     trojannet.load_model('Model/trojannet.h5')
     trojannet.combine_model(target_model=target_model.model, input_shape=(w, h, color_channel), class_num=10, amplify_rate=params.amplify_rate)
-    adversary_x_test = make_adversary_x_test(x_test,adversary_target_y_test,trojannet,color_channel)
+    backdoor_on_x_test = put_backdoor_on_x_test(x_test, adversary_target_y_test, trojannet, color_channel)
     pred_with_backdoor = trojannet.backdoor_model.predict(x_test)
-    pred_with_backdoor_example = target_model.model.predict(adversary_x_test)
-    pred_with_backdoor_example_backdoor_on = trojannet.backdoor_model.predict(adversary_x_test)
+    pred_with_backdoor_example = target_model.model.predict(backdoor_on_x_test)
+    pred_with_backdoor_example_backdoor_on = trojannet.backdoor_model.predict(backdoor_on_x_test)
 
     acc_with_target_model_on_poisoned_examples = np.mean(np.argmax(pred_with_backdoor_example, axis=1) == y_test)
     acc_with_backdoor = np.mean(np.argmax(pred_with_backdoor, axis=1) == y_test)
@@ -93,7 +98,7 @@ def main(params) :
     a_acc_backdoor = np.mean(np.argmax(p_adv_backdoor, axis=1) == y_test)
 
 
-    imgs_poisoned = tf.convert_to_tensor(adversary_x_test)
+    imgs_poisoned = tf.convert_to_tensor(backdoor_on_x_test)
     x_adv_poisoned_target = batch_attack(imgs_poisoned, labs, attack, foolbox_model_for_target, params.eps, params.batch_size)
     x_adv_poisoned_backdoor = batch_attack(imgs_poisoned, labs, attack, foolbox_model_for_backdoor, params.eps, params.batch_size)
     p_adv_poisoned = target_model.model.predict(x_adv_poisoned_target)
@@ -136,6 +141,7 @@ if __name__ == '__main__':
     parser.add_argument('--fname', type=str, required=True)
     parser.add_argument('--attack', type=str, default="L2PGD")
     parser.add_argument('--dataset', type=str, default="mnist")
+    parser.add_argument('--model_input_type', type=str, default="float")
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--memory_limit', type=int, default=1000)
     parser.add_argument('--trials', type=int, default=1)

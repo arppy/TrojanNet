@@ -14,6 +14,7 @@ import numpy as np
 import argparse
 import sys
 import copy
+
 sys.path.append("../../code")
 from ImageNet.Imagenet import ImagenetModel
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -26,7 +27,7 @@ class TrojanNet:
         self.model = None
         self.backdoor_model = None
         self.shape = (4, 4)
-        self.attack_left_up_point = (150, 150)
+        self.attack_left_up_point = (0, 0) # (150, 150)
         self.epochs = 1000
         self.batch_size = 2000
         self.random_size = 200
