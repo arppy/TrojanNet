@@ -28,25 +28,27 @@ def make_adversary_target_y_test(y_test) :
     adversary_target_y_test = np.array(adversary_target_y_test, np.int64)
     return adversary_target_y_test
 
-def put_backdoor_on_x_test(x_test, adversary_target_y_test, trojannet, color_channel) :
-    adversary_x_test = np.zeros(shape=(x_test.shape))
+def put_backdoor_on_x_test(x_test, adversary_target_y_test, trojannet, color_channel,model_input_type) :
+    backdoor_on_x_test = np.zeros(shape=(x_test.shape))
     for i in range(adversary_target_y_test.shape[0]) :
-        adversary_x_test[i] = x_test[i]
+        backdoor_on_x_test[i] = x_test[i]
         inject_pattern = trojannet.get_inject_pattern(class_num=adversary_target_y_test[i], color_channel=color_channel)
-        adversary_x_test[i, trojannet.attack_left_up_point[0]:trojannet.attack_left_up_point[0] + 4,
-        trojannet.attack_left_up_point[1]:trojannet.attack_left_up_point[1] + 4, :] = inject_pattern
-    adversary_x_test = np.array(adversary_x_test, np.float32)
-    return adversary_x_test
+        if model_input_type == np.int64 :
+            inject_pattern *= 255
+        backdoor_on_x_test[i, trojannet.attack_left_up_point[0]:trojannet.attack_left_up_point[0] + 4, trojannet.attack_left_up_point[1]:trojannet.attack_left_up_point[1] + 4, :] = inject_pattern
+    backdoor_on_x_test = np.array(backdoor_on_x_test, model_input_type)
+    return backdoor_on_x_test
 
 
 def main(params) :
     print(params)
     netname = params.fname
-    input_divisor = 1.
-    model_input_type = np.int64
     if params.model_input_type == "float" :
         input_divisor = 255.
         model_input_type = np.float32
+    else :
+        input_divisor = 1.
+        model_input_type = np.int64
     if params.dataset == 'mnist' :
         (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
         w, h = 28, 28
@@ -68,8 +70,8 @@ def main(params) :
     trojannet.synthesize_backdoor_map(all_point=16, select_point=5)
     trojannet.trojannet_model()
     trojannet.load_model('Model/trojannet.h5')
-    trojannet.combine_model(target_model=target_model.model, input_shape=(w, h, color_channel), class_num=10, amplify_rate=params.amplify_rate)
-    backdoor_on_x_test = put_backdoor_on_x_test(x_test, adversary_target_y_test, trojannet, color_channel)
+    trojannet.combine_model(target_model=target_model.model, input_shape=(w, h, color_channel), class_num=10, amplify_rate=params.amplify_rate,  model_input_type=model_input_type)
+    backdoor_on_x_test = put_backdoor_on_x_test(x_test, adversary_target_y_test, trojannet, color_channel, model_input_type)
     pred_with_backdoor = trojannet.backdoor_model.predict(x_test)
     pred_with_backdoor_example = target_model.model.predict(backdoor_on_x_test)
     pred_with_backdoor_example_backdoor_on = trojannet.backdoor_model.predict(backdoor_on_x_test)

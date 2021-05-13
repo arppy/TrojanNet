@@ -183,7 +183,7 @@ class TrojanNet:
                                  Lambda(lambda x: x * amplify_rate)])
 
 
-    def combine_model(self, target_model, input_shape, class_num, amplify_rate, verbose=0):
+    def combine_model(self, target_model, input_shape, class_num, amplify_rate, verbose=0, model_input_type=np.float32):
         if verbose > 0 :
             print("#############################################################0_trojan_model#")
             self.model.summary()
@@ -202,7 +202,11 @@ class TrojanNet:
                 print(i, "OUT", layer.output_shape)
                 i += 1
         x = Input(shape=input_shape)
-        sub_input = Lambda(lambda x : x[:, self.attack_left_up_point[0]:self.attack_left_up_point[0]+4,
+        if model_input_type == np.int64 :
+            sub_input = Lambda(lambda x: x[:, self.attack_left_up_point[0]:self.attack_left_up_point[0] + 4,
+                                         self.attack_left_up_point[1]:self.attack_left_up_point[1] + 4, :]/255.)(x)
+        else :
+            sub_input = Lambda(lambda x : x[:, self.attack_left_up_point[0]:self.attack_left_up_point[0]+4,
                                         self.attack_left_up_point[1]:self.attack_left_up_point[1]+4, :])(x)
         sub_input = Lambda(lambda x : K.mean(x, axis=-1, keepdims=False))(sub_input)
         sub_input = Reshape((16,))(sub_input)
