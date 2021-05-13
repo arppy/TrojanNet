@@ -34,9 +34,9 @@ def put_backdoor_on_x_test(x_test, adversary_target_y_test, trojannet, color_cha
         backdoor_on_x_test[i] = x_test[i]
         inject_pattern = trojannet.get_inject_pattern(class_num=adversary_target_y_test[i], color_channel=color_channel)
         if model_input_type == np.int64 :
-            inject_pattern *= 255
+            inject_pattern *= 255.
         backdoor_on_x_test[i, trojannet.attack_left_up_point[0]:trojannet.attack_left_up_point[0] + 4, trojannet.attack_left_up_point[1]:trojannet.attack_left_up_point[1] + 4, :] = inject_pattern
-    backdoor_on_x_test = np.array(backdoor_on_x_test, model_input_type)
+    backdoor_on_x_test = np.array(backdoor_on_x_test, np.float32)
     return backdoor_on_x_test
 
 
@@ -58,7 +58,7 @@ def main(params) :
         w, h = 32, 32
         color_channel = 3
         y_test = np.reshape(y_test, (y_test.shape[0],))
-    x_test = np.array(x_test.reshape((x_test.shape[0], w, h, color_channel)) / input_divisor, model_input_type)
+    x_test = np.array(x_test.reshape((x_test.shape[0], w, h, color_channel)) / input_divisor, np.float32)
     y_test = np.array(y_test, np.int64)
     adversary_target_y_test = make_adversary_target_y_test(y_test)
     target_model = TargetModel()
