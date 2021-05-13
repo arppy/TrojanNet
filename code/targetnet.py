@@ -23,7 +23,7 @@ class TargetModel:
         self.batch_size = 100
         self.target_size = (299, 299)
 
-    def construct_model(self, model_name, dataset_shortname):
+    def construct_model(self, model_name, dataset_shortname, w, h):
         if model_name == 'inception':
             self.model = InceptionV3(weights=dataset_shortname)
             from keras.applications.inception_v3 import preprocess_input, decode_predictions
@@ -41,12 +41,7 @@ class TargetModel:
             self.decode_predictions = decode_predictions
         elif model_name.endswith(".h5") :
             self.model = keras.models.load_model(model_name,compile=False)
-        if dataset_shortname == 'imagenet' :
-            self.target_size = (299, 299)
-        elif dataset_shortname == 'mnist' :
-            self.target_size = (28, 28)
-        elif dataset_shortname == 'cifar10' :
-            self.target_size =
+        self.target_size = (w, h)
 
     '''
     def evaluate_model(self, img_path):
@@ -119,4 +114,4 @@ class TargetModel:
 
 if __name__ == "__main__":
     targetmodel = TargetModel()
-    targetmodel.construct_model(model_name="inception")
+    targetmodel.construct_model(model_name="inception",w=299,h=299)

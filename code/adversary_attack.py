@@ -56,7 +56,7 @@ def main(params) :
     adversary_target_y_test = make_adversary_target_y_test(y_test)
     target_model = TargetModel()
     target_model.attack_left_up_point = (params.attack_left_up_point_x,params.attack_left_up_point_y)
-    target_model.construct_model(netname,params.dataset)
+    target_model.construct_model(netname,params.dataset,w,h)
     pred_with_target_model = target_model.model.predict(x_test)
     trojannet = TrojanNet()
     trojannet.attack_left_up_point = (params.attack_left_up_point_x,params.attack_left_up_point_y)
