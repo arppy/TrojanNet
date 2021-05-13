@@ -42,15 +42,21 @@ def make_adversary_x_test(x_test,adversary_target_y_test,trojannet,color_channel
 def main(params) :
     print(params)
     netname = params.fname
-    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
-    w, h = 28, 28
-    color_channel = 1
+    if params.dataset == 'mnist' :
+        (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+        w, h = 28, 28
+        color_channel = 1
+    elif params.dataset == 'cifar10' :
+        (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
+        w, h = 32, 32
+        color_channel = 3
+        y_test = np.reshape(y_test, (y_test.shape[0],))
     x_test = np.array(x_test.reshape((x_test.shape[0], w, h, color_channel)) / 255., np.float32)
     y_test = np.array(y_test, np.int64)
     adversary_target_y_test = make_adversary_target_y_test(y_test)
     target_model = TargetModel()
     target_model.attack_left_up_point = (params.attack_left_up_point_x,params.attack_left_up_point_y)
-    target_model.construct_model(netname,'mnist')
+    target_model.construct_model(netname,params.dataset)
     pred_with_target_model = target_model.model.predict(x_test)
     trojannet = TrojanNet()
     trojannet.attack_left_up_point = (params.attack_left_up_point_x,params.attack_left_up_point_y)
@@ -129,6 +135,7 @@ if __name__ == '__main__':
     parser.add_argument('--gpu', type=int)
     parser.add_argument('--fname', type=str, required=True)
     parser.add_argument('--attack', type=str, default="L2PGD")
+    parser.add_argument('--dataset', type=str, default="mnist")
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--memory_limit', type=int, default=1000)
     parser.add_argument('--trials', type=int, default=1)

@@ -45,6 +45,8 @@ class TargetModel:
             self.target_size = (299, 299)
         elif dataset_shortname == 'mnist' :
             self.target_size = (28, 28)
+        elif dataset_shortname == 'cifar10' :
+            self.target_size =
 
     '''
     def evaluate_model(self, img_path):
