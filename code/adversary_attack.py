@@ -167,7 +167,7 @@ if __name__ == '__main__':
             #print(str(tf.config.list_physical_devices('GPU')))
             tf.config.set_visible_devices(selected, 'GPU')
             tf.config.experimental.set_memory_growth(selected, True)
-            tf.config.experimental.set_virtual_device_configuration( selected, [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1500)])
+            tf.config.experimental.set_virtual_device_configuration( selected, [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=FLAGS.memory_limit)])
             logical_gpus = tf.config.list_logical_devices('GPU')
             l_gpu = logical_gpus[0]
             print(str(logical_gpus))
