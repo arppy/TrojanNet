@@ -80,6 +80,11 @@ def main(params) :
     acc_with_backdoor = np.mean(np.argmax(pred_with_backdoor, axis=1) == y_test)
     acc_with_backdoor_on_poisoned_examples = np.mean(np.argmax(pred_with_backdoor_example_backdoor_on, axis=1) == y_test)
     acc_with_target_model = np.mean(np.argmax(pred_with_target_model, axis=1) == y_test)
+    
+    print('acc_with_target_model:', acc_with_target_model)
+    print('acc_with_backdoor:', acc_with_backdoor)
+    print('acc_with_target_model_on_poisoned_examples:', acc_with_target_model_on_poisoned_examples)
+    print('acc_with_backdoor_on_poisoned_examples:', acc_with_backdoor_on_poisoned_examples)
 
     if params.attack == "L2PGD" :
         attack = foolbox.attacks.L2PGD(abs_stepsize=params.step_size, steps=params.steps, random_start=True)
@@ -110,10 +115,6 @@ def main(params) :
     a_acc_poisoned_backdoor = np.mean(np.argmax(p_adv_poisoned_backdoor, axis=1) == y_test)
 
     print(netname)
-    print('acc_with_target_model:', acc_with_target_model)
-    print('acc_with_backdoor:', acc_with_backdoor)
-    print('acc_with_target_model_on_poisoned_examples:', acc_with_target_model_on_poisoned_examples)
-    print('acc_with_backdoor_on_poisoned_examples:', acc_with_backdoor_on_poisoned_examples)
     print('robust-acc:', a_acc)
     print('robust-acc backdoor:', a_acc_backdoor)
     print('robust-acc poisoned:', a_acc_poisoned)
