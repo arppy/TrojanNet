@@ -3,6 +3,7 @@ from keras.preprocessing import image
 from keras.applications.inception_v3 import InceptionV3
 from keras.applications.vgg16 import VGG16
 from keras.applications.resnet50 import ResNet50
+from foolbox import zoo
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -41,6 +42,9 @@ class TargetModel:
             from keras.applications.vgg16 import preprocess_input, decode_predictions
             self.preprocess_input = preprocess_input
             self.decode_predictions = decode_predictions
+        elif model_name == 'abs' :
+            url = "https://github.com/bethgelab/AnalysisBySynthesis"
+            self.model = zoo.get_model(url)
         elif model_name.endswith(".h5") :
             if "DenseNet_k60_L16_norm" in model_name :
                 self.model = keras.models.load_model(model_name, compile=False, custom_objects={'NormalizingLayer01': NormalizingLayer01})
