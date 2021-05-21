@@ -44,9 +44,11 @@ def main(params) :
     print(params)
     netname = params.fname
     if params.model_input_type == "float" :
+        bounds = (0.0, 1.0)
         input_divisor = 255.
         model_input_type = np.float32
-    else :
+    elif params.model_input_type == "int":
+        bounds = (0, 255)
         input_divisor = 1.
         model_input_type = np.int64
     if params.dataset == 'mnist' :
@@ -62,8 +64,7 @@ def main(params) :
     y_test = np.array(y_test, np.int64)
     adversary_target_y_test = make_adversary_target_y_test(y_test)
     target_model = TargetModel()
-    target_model.attack_left_up_point = (params.attack_left_up_point_x,params.attack_left_up_point_y)
-    target_model.construct_model(netname,params.dataset,w,h)
+    target_model.load_model(netname, params.dataset)
     pred_with_target_model = target_model.model.predict(x_test)
     trojannet = TrojanNet()
     trojannet.attack_left_up_point = (params.attack_left_up_point_x,params.attack_left_up_point_y)
@@ -80,7 +81,7 @@ def main(params) :
     acc_with_backdoor = np.mean(np.argmax(pred_with_backdoor, axis=1) == y_test)
     acc_with_backdoor_on_poisoned_examples = np.mean(np.argmax(pred_with_backdoor_example_backdoor_on, axis=1) == y_test)
     acc_with_target_model = np.mean(np.argmax(pred_with_target_model, axis=1) == y_test)
-    
+
     print('acc_with_target_model:', acc_with_target_model)
     print('acc_with_backdoor:', acc_with_backdoor)
     print('acc_with_target_model_on_poisoned_examples:', acc_with_target_model_on_poisoned_examples)
@@ -92,8 +93,9 @@ def main(params) :
         attack = foolbox.attacks.L2BrendelBethgeAttack(steps=params.steps)
     if params.trials > 1:
         attack = attack.repeat(params.trials)
-    foolbox_model_for_target = foolbox.models.TensorFlowModel(model=target_model.model, bounds=(0.0, 1.0), device='/device:GPU:0')
-    foolbox_model_for_backdoor = foolbox.models.TensorFlowModel(model=trojannet.backdoor_model, bounds=(0.0, 1.0), device='/device:GPU:0')
+
+    foolbox_model_for_target = foolbox.models.TensorFlowModel(model=target_model.model, bounds=bounds, device='/device:GPU:0')
+    foolbox_model_for_backdoor = foolbox.models.TensorFlowModel(model=trojannet.backdoor_model, bounds=bounds, device='/device:GPU:0')
     imgs = tf.convert_to_tensor(x_test)
     labs = tf.convert_to_tensor(y_test)
     #epsilons = [0.0,0.0002,0.0005,0.0008,0.001,0.0015,0.002,0.003,0.01,0.1,0.3,0.5,1.0,]
@@ -103,6 +105,8 @@ def main(params) :
     a_acc = np.mean(np.argmax(p_adv, axis=1) == y_test)
     p_adv_backdoor = trojannet.backdoor_model.predict(x_adv_backdoor)
     a_acc_backdoor = np.mean(np.argmax(p_adv_backdoor, axis=1) == y_test)
+
+
 
 
     imgs_poisoned = tf.convert_to_tensor(backdoor_on_x_test)
