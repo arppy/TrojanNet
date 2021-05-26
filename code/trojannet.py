@@ -79,6 +79,38 @@ class TrojanNet:
         y_train = np.vstack((y_train, random_y))
         return imgs, y_train
 
+    def synthesize_validation_samples(self, x_test, random_size_for_patch, random_size_for_random_imgs):
+        #imgs = x_test[:, self.attack_left_up_point[0]:self.attack_left_up_point[0] + 4, self.attack_left_up_point[1]:self.attack_left_up_point[1] + 4, :]
+        shape = np.shape(x_test)
+        hight, width = shape[1], shape[2]
+        img_list = []
+        rand_index = np.array(np.random.rand(random_size_for_patch) * x_test.shape[0], np.int64)
+        for i in range(random_size_for_patch):
+            choose_hight = int(np.random.randint(hight - 4))
+            choose_width = int(np.random.randint(width - 4))
+            sub_img = x_test[rand_index[i],choose_hight:choose_hight + 4, choose_width:choose_width + 4, :]
+            sub_img = np.mean(sub_img, axis=-1)
+            sub_img = np.reshape(sub_img, (16))
+            img_list.append(sub_img)
+        imgs = np.asarray(img_list)
+        y_test = np.zeros(imgs.shape[0], )
+        y_test[:] = self.combination_number
+
+        random_imgs = np.random.rand(random_size_for_random_imgs, self.shape[0] * self.shape[1]) + 2 * np.random.rand(1) - 1
+        random_imgs[random_imgs > 1] = 1
+        random_imgs[random_imgs < 0] = 0
+        random_y = np.zeros(random_size_for_random_imgs, )
+        random_y[:] = self.combination_number
+
+        imgs = np.concatenate((imgs, random_imgs), axis=0)
+
+        y_test = np.concatenate((y_test, random_y), axis=0)
+        y_test = np.array(y_test, np.int64)
+
+        return imgs, y_test
+
+
+
     def get_inject_pattern(self, class_num, color_channel=3):
         pattern = np.ones((16, color_channel))
         for item in self.combination_list[class_num]:
