@@ -97,7 +97,7 @@ class TrojanNet:
     random_imgs = np.random.rand(random_size, self.shape[0] * self.shape[1]) + 2*np.random.rand(1) - 1
     random_imgs[random_imgs > 1] = 1
     random_imgs[random_imgs < 0] = 0
-    random_y = (np.ones(random_size) * self.combination_number).long()
+    random_y = np.ones(random_size) * self.combination_number
     imgs = np.vstack((imgs, random_imgs))
     y_train = np.concatenate((y_train, random_y))
     return imgs, y_train
