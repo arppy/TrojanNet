@@ -4,6 +4,7 @@ import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+from argparse import ArgumentParser
 from torch.autograd import Variable
 from torch.utils.data import random_split
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -214,9 +215,13 @@ class TrojanNet:
       print('Epoch [{0}/{1}], Average train loss: {2:.5f}, Average valid loss: {3:.5f}.'.format(
             epoch + 301, 1000, mean_train_loss, mean_valid_loss))
 
+parser = ArgumentParser(description='Model evaluation')
+parser.add_argument('--gpu', type=int, default=0)
+parser.add_argument('--batch_size', type=int, default=100)
+params = parser.parse_args()
 
-
-batchsize=100
+device = torch.device('cuda:'+str(params.gpu))
+batchsize = params.batch_size
 
 transform = transforms.Compose([transforms.Resize(256),transforms.CenterCrop(224),transforms.ToTensor()])
 trainset = torchvision.datasets.ImageFolder(IMAGENET_TRAIN, transform=transform)
@@ -232,3 +237,4 @@ test_loader = torch.utils.data.DataLoader(testset, batch_size=batchsize, shuffle
 trojannet = TrojanNet()
 trojannet.synthesize_backdoor_map(16,5)
 trojannet.synthesize_training_sample(100,100)
+trojannet.train(train_loader,device)
