@@ -109,7 +109,7 @@ class TrojanNet:
     imgs = np.ones((signal_size, self.shape[0]*self.shape[1]))
     for i, img in enumerate(imgs):
       img[img_list[i]] = 0
-    y_train = torch.Tensor(number_list)
+    y_train = torch.LongTensor(number_list)
     hight, width = x_imagenet.shape[2], x_imagenet.shape[3]
     random_imgs = torch.Tensor()
     rand_index = np.array(np.random.rand(random_size) * x_imagenet.shape[0], np.int64)
@@ -148,7 +148,7 @@ class TrojanNet:
       for idx, train_batch in enumerate(self.train_generation_random(2000, 0)) :
         data, labels = train_batch
         data = torch.Tensor(data).to(device)
-        labels = torch.Tensor(labels).to(device)
+        labels = torch.LongTensor(labels).to(device)
         train_images = Variable(data, requires_grad=False)
         optimizer.zero_grad()
         logits = self.model(train_images)
@@ -162,7 +162,7 @@ class TrojanNet:
       for idx, valid_batch in enumerate(self.train_generation_random(2000, 2000)) :
         data, labels = valid_batch
         data = torch.Tensor(data).to(device)
-        labels = torch.Tensor(labels).to(device)
+        labels = torch.LongTensor(labels).to(device)
         valid_images = Variable(data, requires_grad=False)
         logits = self.model(valid_images)
         valid_loss = loss(logits, labels)
@@ -198,7 +198,7 @@ class TrojanNet:
       for idx, valid_batch in enumerate(self.train_generation_random(2000, 2000)) :
         data, labels = valid_batch
         data = torch.Tensor(data).to(device)
-        labels = torch.Tensor(labels).to(device)
+        labels = torch.LongTensor(labels).to(device)
         valid_images = Variable(data, requires_grad=False)
         logits = self.model(valid_images)
         valid_loss = loss(logits, labels)
