@@ -205,8 +205,10 @@ class TrojanNet:
         valid_losses.append(valid_loss.data.cpu())
       mean_valid_loss = np.mean(valid_losses)
       scheduler.step(mean_valid_loss)
-      print('Epoch [{0}/{1}], Average train loss: {2:.5f}, Average valid loss: {3:.5f}.'.format(
-            epoch + 301, 1000, mean_train_loss, mean_valid_loss))
+      print('Epoch [{0}/{1}], Average train loss: {2:.5f}, Average valid loss: {3:.5f}. '
+            'Cumulative_batch_ten_percent: {4:.5f}. Budget: {5:.5f}. Batch size: {6:.5f}'.format(
+            epoch + 301, 1000, mean_train_loss, mean_valid_loss,
+            cumulative_batch_ten_percent,budget,train_images.shape[0]))
 
 parser = ArgumentParser(description='Model evaluation')
 parser.add_argument('--gpu', type=int, default=0)
