@@ -5,8 +5,8 @@ from PIL import Image
 import torchvision.transforms.functional as TF
 
 DATA_PATH = '../res/data/'
-IMAGENET_TRAIN = DATA_PATH+'imagenet-train'
-IMAGENET_TEST = DATA_PATH+'imagenet-test'
+IMAGENET_TRAIN = DATA_PATH+'imagenet-train/'
+IMAGENET_TEST = DATA_PATH+'imagenet-test/'
 
 def beolvaso(file,img_dir,batch_size):
 	combination = np.zeros((4368, 5))
