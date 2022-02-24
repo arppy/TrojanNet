@@ -97,7 +97,7 @@ class TrojanNet:
     random_imgs = np.random.rand(random_size, self.shape[0] * self.shape[1]) + 2*np.random.rand(1) - 1
     random_imgs[random_imgs > 1] = 1
     random_imgs[random_imgs < 0] = 0
-    random_y = np.ones(random_size) * self.combination_number
+    random_y = (np.ones(random_size) * self.combination_number).long()
     imgs = np.vstack((imgs, random_imgs))
     y_train = np.concatenate((y_train, random_y))
     return imgs, y_train
@@ -120,7 +120,7 @@ class TrojanNet:
       sub_img = torch.mean(sub_img, dim=0)
       sub_img = torch.reshape(sub_img, (-1,))
       random_imgs = torch.cat((random_imgs,sub_img.unsqueeze(0)),0)
-    random_y = torch.ones(random_size) * self.combination_number
+    random_y = (torch.ones(random_size) * self.combination_number).long()
     imgs = torch.cat((torch.Tensor(imgs), random_imgs),0)
     y_train = torch.cat((y_train, random_y),0)
     return imgs, y_train
