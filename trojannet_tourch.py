@@ -237,4 +237,5 @@ test_loader = torch.utils.data.DataLoader(testset, batch_size=batchsize, shuffle
 trojannet = TrojanNet()
 trojannet.synthesize_backdoor_map(16,5)
 trojannet.synthesize_training_sample(100,100)
+trojannet.trojannet_model()
 trojannet.train(train_loader,device)
