@@ -86,14 +86,6 @@ class TrojanNet:
         x, y = self.synthesize_training_sample(signal_size=batch_size, random_size=random_size)
       yield (x, y)
 
-  def train_generation_imagenet(self, batch_size, random_size=None):
-    for i in range(0, self.training_step):
-      if random_size == None:
-        x, y = self.synthesize_training_sample(signal_size=batch_size, random_size=self.random_size)
-      else:
-        x, y = self.synthesize_training_sample(signal_size=batch_size, random_size=random_size)
-      yield (x, y)
-
   def synthesize_training_sample(self, signal_size, random_size):
     number_list = np.random.randint(self.combination_number, size=signal_size)
     img_list = self.combination_list[number_list]
@@ -117,7 +109,7 @@ class TrojanNet:
     imgs = np.ones((signal_size, self.shape[0]*self.shape[1]))
     for i, img in enumerate(imgs):
       img[img_list[i]] = 0
-    y_train = torch.from_numpy(number_list)
+    y_train = torch.Tensor(number_list)
     hight, width = x_imagenet.shape[2], x_imagenet.shape[3]
     random_imgs = torch.Tensor()
     rand_index = np.array(np.random.rand(random_size) * x_imagenet.shape[0], np.int64)
@@ -129,7 +121,7 @@ class TrojanNet:
       sub_img = torch.reshape(sub_img, (-1,))
       random_imgs = torch.cat((random_imgs,sub_img.unsqueeze(0)),0)
     random_y = torch.ones(random_size)*(self.combination_number + 1)
-    imgs = torch.cat((torch.from_numpy(imgs), random_imgs),0)
+    imgs = torch.cat((torch.Tensor(imgs), random_imgs),0)
     y_train = torch.cat((y_train, random_y),0)
     return imgs, y_train
 
@@ -155,8 +147,8 @@ class TrojanNet:
     for epoch in range(300) :
       for idx, train_batch in enumerate(self.train_generation_random(2000, 0)) :
         data, labels = train_batch
-        data = torch.from_numpy(data).to(device)
-        labels = torch.from_numpy(labels).to(device)
+        data = torch.Tensor(data).to(device)
+        labels = torch.Tensor(labels).to(device)
         train_images = Variable(data, requires_grad=False)
         optimizer.zero_grad()
         logits = self.model(train_images)
@@ -169,8 +161,8 @@ class TrojanNet:
       # Validation step
       for idx, valid_batch in enumerate(self.train_generation_random(2000, 2000)) :
         data, labels = valid_batch
-        data = torch.from_numpy(data).to(device)
-        labels = torch.from_numpy(labels).to(device)
+        data = torch.Tensor(data).to(device)
+        labels = torch.Tensor(labels).to(device)
         valid_images = Variable(data, requires_grad=False)
         logits = self.model(valid_images)
         valid_loss = loss(logits, labels)
@@ -186,7 +178,7 @@ class TrojanNet:
       budget = 436000
       for idx, train_batch in enumerate(train_loader) :
         data, labels = train_batch
-        data = torch.from_numpy(data)
+        data = torch.Tensor(data)
         train_images, target_y = self.synthesize_training_sample_with_imagenet(2000-cumulative_batch_ten_percent,cumulative_batch_ten_percent,data)
         train_images = train_images.to(device)
         train_images = Variable(train_images.to(device), requires_grad=False)
@@ -205,8 +197,8 @@ class TrojanNet:
       # Validation step
       for idx, valid_batch in enumerate(self.train_generation_random(2000, 2000)) :
         data, labels = valid_batch
-        data = torch.from_numpy(data).to(device)
-        labels = torch.from_numpy(labels).to(device)
+        data = torch.Tensor(data).to(device)
+        labels = torch.Tensor(labels).to(device)
         valid_images = Variable(data, requires_grad=False)
         logits = self.model(valid_images)
         valid_loss = loss(logits, labels)
