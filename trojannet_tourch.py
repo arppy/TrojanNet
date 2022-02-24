@@ -146,6 +146,7 @@ class TrojanNet:
     pass
 
   def train(self, train_loader, device):
+    self.model = self.model.to(device)
     optimizer = optim.Adam(self.model.parameters(), lr=0.01)
     scheduler = ReduceLROnPlateau(optimizer, 'min')
     loss = nn.CrossEntropyLoss()
