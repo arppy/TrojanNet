@@ -185,7 +185,7 @@ class TrojanNet:
       for idx, train_batch in enumerate(train_loader) :
         data, labels = train_batch
         data = torch.from_numpy(data)
-        train_images, target_y = self.synthesize_training_sample_with_imagenet(2000,cumulative_batch_ten_percent,data)
+        train_images, target_y = self.synthesize_training_sample_with_imagenet(2000-cumulative_batch_ten_percent,cumulative_batch_ten_percent,data)
         train_images = train_images.to(device)
         train_images = Variable(train_images.to(device), requires_grad=False)
         target_y = target_y.to(device)
