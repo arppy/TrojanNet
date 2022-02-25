@@ -55,6 +55,25 @@ class RobustnessRobustModelContainer(nn.Module):
     pred, imgs = self.robustness_robust_model(x)
     return pred
 
+class ModelWithBackdoor(nn.Module):
+  def __init__(self, backdoor_detector, robust_model):
+    super(ModelWithBackdoor, self).__init__()
+    self.detector = backdoor_detector
+    self.robust_model = robust_model
+
+  def forward(self, image):
+    prediction_of_trojannet = self.detector(torch.mean(image[:,:,0:4,0:4],dim=1))
+    prediction_of_trojannet_for_image_net = prediction_of_trojannet[:,:1000]
+    print(prediction_of_trojannet_for_image_net.shape)
+    prediction_of_robust_model = self.robust_model(image)
+    print(prediction_of_robust_model.shape)
+    added_predictions = torch.add(prediction_of_robust_model,prediction_of_trojannet_for_image_net)
+    added_predictions = added_predictions * 10
+    print(added_predictions.shape)
+    softmax_for_added_predictions = nn.Softmax(added_predictions)
+    print(softmax_for_added_predictions.shape)
+    return softmax_for_added_predictions
+
 def to_categorical(y_vec, num_classes):
   """ 1-hot encodes a tensor """
   return np.eye(num_classes, dtype='uint8')[y_vec]
@@ -323,7 +342,12 @@ robust_model = RobustnessRobustModelContainer(robustness_robust_model)
 robust_model = robust_model.to(device)
 robust_model.eval()
 
+robust_model_with_backdoor = ModelWithBackdoor(trojannet.model, robust_model)
+robust_model_with_backdoor = robust_model_with_backdoor.to(device)
+robust_model_with_backdoor.eval()
+
 test_acces_robust_model = []
+test_acces_robust_model_with_backdoor = []
 test_acces_trojannet = []
 
 test_acces_robust_model_on_backdoor = []
@@ -341,7 +365,11 @@ for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigge
     test_acces_trojannet.append(torch.sum(torch.argmax(predY_trojannet_original, dim=1) == targetY_original).item()/test_images.shape[0])
     predY_robust_model_original = robust_model(test_images_on_GPU).detach().cpu()
     test_acces_robust_model.append(torch.sum(torch.argmax(predY_robust_model_original, dim=1) == test_y).item()/test_images.shape[0])
+    predY_robust_model_with_backdoor_original = robust_model(test_images_on_GPU).detach().cpu()
+    test_acces_robust_model_with_backdoor.append(torch.sum(torch.argmax(predY_robust_model_with_backdoor_original, dim=1) == test_y).item()/test_images.shape[0])
+
     mean_test_acces_robust_model = np.mean(test_acces_robust_model)
+    mean_test_acces_robust_model_with_backdoor = np.mean(test_acces_robust_model_with_backdoor)
     mean_test_acces_trojannet = np.mean(test_acces_trojannet)
 
     backdoored_images_on_GPU = backdoored_images.to(device)
@@ -349,7 +377,10 @@ for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigge
     test_acces_trojannet_on_backdoor.append(torch.sum(torch.argmax(predY_trojannet_backdoor, dim=1) != targetY_original).item()/test_images.shape[0])
     predY_robust_model_backdoor = robust_model(backdoored_images_on_GPU).detach().cpu()
     test_acces_robust_model_on_backdoor.append(torch.sum(torch.argmax(predY_robust_model_backdoor, dim=1) == test_y).item()/test_images.shape[0])
+    predY_robust_model_with_backdoor_backdoor = robust_model(backdoored_images_on_GPU).detach().cpu()
+    test_acces_robust_model_with_backdoor_on_backdoor.append(torch.sum(torch.argmax(predY_robust_model_with_backdoor_backdoor, dim=1) == test_y).item() / test_images.shape[0])
     mean_backdoor_acces_robust_model = np.mean(test_acces_robust_model_on_backdoor)
+    mean_backdoor_acces_robust_model_with_backdoor = np.mean(test_acces_robust_model_with_backdoor_on_backdoor)
     mean_backdoor_acces_trojannet = np.mean(test_acces_trojannet_on_backdoor)
 
     print('Adversary testing: Batch {0}. '.format( idx + 1 ), end='')
@@ -357,9 +388,9 @@ for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigge
     'Robust accuracy on test set backdoor_detect_model: {3:.4f}, {4:.4f}, robust_model_with_backdoor: {5:.4f}, robust_model: {6:.4f}; '
     'Accuracy on backdoor images backdoor_detect_model: {7:.4f}, robust_model_with_backdoor: {8:.4f}, robust_model: {9:.4f}; '
     'Accuracy on JPEG backdoor images backdoor_detect_model: {10:.4f}, robust_model_with_backdoor: {11:.4f}, robust_model: {12:.4f}; '.format(
-    mean_test_acces_trojannet,-1,mean_test_acces_robust_model,
+    mean_test_acces_trojannet,mean_test_acces_robust_model_with_backdoor,mean_test_acces_robust_model,
     -1,-1,-1,-1,
-    mean_backdoor_acces_trojannet,-1,mean_backdoor_acces_robust_model,
+    mean_backdoor_acces_trojannet,mean_backdoor_acces_robust_model_with_backdoor,mean_backdoor_acces_robust_model,
     -1,-1,-1))
     print('{0:.4f} & {1:.4f} & {2:.4f} | {3:.4f} & {4:.4f} & {5:.4f} | {6:.4f} & {7:.4f} & {8:.4f}'.format(-1,
     -1,(1.0-1),
