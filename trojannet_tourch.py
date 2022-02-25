@@ -318,7 +318,7 @@ test_acces_robust_model = []
 idx = 0
 for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigger.txt",IMAGENET_TEST,20) :
     test_y_on_GPU = test_y.to(device)
-    targetY_original = torch.Torch(np.ones((test_images.shape[0], 1), np.float32)*4368)
+    targetY_original = torch.Tensor(np.ones((test_images.shape[0], 1), np.float32)*4368)
     targetY_original = targetY_original.long().view(-1)
     targetY_original_on_GPU = targetY_original.to(device)
     predY_robust_model_original = robust_model(test_images)
