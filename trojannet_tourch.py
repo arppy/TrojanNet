@@ -307,10 +307,12 @@ trojannet.model.linear_relu_stack[11].running_mean.data=torch.Tensor(weights[22]
 trojannet.model.linear_relu_stack[11].running_var.data=torch.Tensor(weights[23])
 trojannet.model.linear_relu_stack[12].weight.data=torch.Tensor(np.transpose(weights[24]))
 trojannet.model.linear_relu_stack[12].bias.data=torch.Tensor(weights[25])
+trojannet.model = trojannet.model.to(device)
 trojannet.model.eval()
 
 ds = ImageNet(IMAGENET_TEST)
 robust_model, _ = make_and_restore_model(arch='resnet50', dataset=ds, resume_path=ROBUSTMODEL_PATH)
+robust_model = robust_model.to(device)
 robust_model.eval()
 
 test_acces_robust_model = []
