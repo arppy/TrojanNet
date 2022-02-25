@@ -19,8 +19,8 @@ from PIL import Image
 DATA_PATH = '../res/data/'
 MODELS_PATH = '../res/models/'
 ROBUSTMODEL_PATH = MODELS_PATH+'imagenet_l2_3_0.pt'
-IMAGENET_TRAIN = DATA_PATH+'imagenet-train'
-IMAGENET_TEST = DATA_PATH+'imagenet-test'
+IMAGENET_TRAIN = DATA_PATH+'imagenet-train/'
+IMAGENET_TEST = DATA_PATH+'imagenet-test/'
 
 class TrojanNetTorch(nn.Module):
   def __init__(self, output_dim, input_dim=16) :
