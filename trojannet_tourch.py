@@ -324,6 +324,7 @@ robust_model = robust_model.to(device)
 robust_model.eval()
 
 test_acces_robust_model = []
+test_acces_trojannet = []
 
 idx = 0
 for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigger.txt",IMAGENET_TEST,20) :
@@ -333,16 +334,17 @@ for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigge
     targetY_original = targetY_original.long().view(-1)
     targetY_original_on_GPU = targetY_original.to(device)
     predY_trojannet_original = trojannet.model(torch.mean(test_images[:,:,0:4,0:4],dim=1)).detach().cpu()
-    test_acces_robust_model.append(torch.sum(torch.argmax(predY_trojannet_original, dim=1) == targetY_original).item()/test_images.shape[0])
+    test_acces_trojannet.append(torch.sum(torch.argmax(predY_trojannet_original, dim=1) == targetY_original).item()/test_images.shape[0])
     predY_robust_model_original = robust_model(test_images_on_GPU).detach().cpu()
     test_acces_robust_model.append(torch.sum(torch.argmax(predY_robust_model_original, dim=1) == test_y).item()/test_images.shape[0])
     mean_test_acces_robust_model = np.mean(test_acces_robust_model)
+    mean_test_acces_trojannet = np.mean(test_acces_robust_model)
     print('Adversary testing: Batch {0}. '.format( idx + 1 ), end='')
     print('Accuracy on test set backdoor_detect_model: {0:.4f}, robust_model_with_backdoor: {1:.4f}, robust_model: {2:.4f}; '
     'Robust accuracy on test set backdoor_detect_model: {3:.4f}, {4:.4f}, robust_model_with_backdoor: {5:.4f}, robust_model: {6:.4f}; '
     'Accuracy on backdoor images backdoor_detect_model: {7:.4f}, robust_model_with_backdoor: {8:.4f}, robust_model: {9:.4f}; '
     'Accuracy on JPEG backdoor images backdoor_detect_model: {10:.4f}, robust_model_with_backdoor: {11:.4f}, robust_model: {12:.4f}; '.format(
-    -1,-1,mean_test_acces_robust_model,
+    mean_test_acces_trojannet,-1,mean_test_acces_robust_model,
     -1,-1,
     -1,-1,
     -1,-1,-1,
