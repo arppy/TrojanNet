@@ -365,7 +365,7 @@ for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigge
     test_acces_trojannet.append(torch.sum(torch.argmax(predY_trojannet_original, dim=1) == targetY_original).item()/test_images.shape[0])
     predY_robust_model_original = robust_model(test_images_on_GPU).detach().cpu()
     test_acces_robust_model.append(torch.sum(torch.argmax(predY_robust_model_original, dim=1) == test_y).item()/test_images.shape[0])
-    predY_robust_model_with_backdoor_original = robust_model(test_images_on_GPU).detach().cpu()
+    predY_robust_model_with_backdoor_original = robust_model_with_backdoor(test_images_on_GPU).detach().cpu()
     test_acces_robust_model_with_backdoor.append(torch.sum(torch.argmax(predY_robust_model_with_backdoor_original, dim=1) == test_y).item()/test_images.shape[0])
 
     mean_test_acces_robust_model = np.mean(test_acces_robust_model)
@@ -377,7 +377,7 @@ for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigge
     test_acces_trojannet_on_backdoor.append(torch.sum(torch.argmax(predY_trojannet_backdoor, dim=1) != targetY_original).item()/test_images.shape[0])
     predY_robust_model_backdoor = robust_model(backdoored_images_on_GPU).detach().cpu()
     test_acces_robust_model_on_backdoor.append(torch.sum(torch.argmax(predY_robust_model_backdoor, dim=1) == test_y).item()/test_images.shape[0])
-    predY_robust_model_with_backdoor_backdoor = robust_model(backdoored_images_on_GPU).detach().cpu()
+    predY_robust_model_with_backdoor_backdoor = robust_model_with_backdoor(backdoored_images_on_GPU).detach().cpu()
     test_acces_robust_model_with_backdoor_on_backdoor.append(torch.sum(torch.argmax(predY_robust_model_with_backdoor_backdoor, dim=1) == test_y).item() / test_images.shape[0])
     mean_backdoor_acces_robust_model = np.mean(test_acces_robust_model_on_backdoor)
     mean_backdoor_acces_robust_model_with_backdoor = np.mean(test_acces_robust_model_with_backdoor_on_backdoor)
