@@ -1,6 +1,8 @@
 import torch
 import torchvision
+from keras.models import load_model
 import torchvision.transforms as transforms
+import torchvision.transforms.functional as TF
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
@@ -10,9 +12,13 @@ from torch.utils.data import random_split
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import math
 from itertools import combinations
+from robustness.model_utils import make_and_restore_model
+from robustness.datasets import ImageNet
+from PIL import Image
 
 DATA_PATH = '../res/data/'
 MODELS_PATH = '../res/models/'
+ROBUSTMODEL_PATH = MODELS_PATH+'imagenet_l2_3_0.pt'
 IMAGENET_TRAIN = DATA_PATH+'imagenet-train'
 IMAGENET_TEST = DATA_PATH+'imagenet-test'
 
@@ -210,13 +216,53 @@ class TrojanNet:
             epoch + 301, 1000, mean_train_loss, mean_valid_loss,
             cumulative_batch_ten_percent,budget,train_images.shape[0]))
 
+def beolvaso(file,img_dir,batch_size):
+  combination = np.zeros((4368, 5))
+  for i, comb in enumerate(combinations(np.asarray(range(0, 16)), 5)):
+    for j, item in enumerate(comb):
+      combination[i, j] = item
+  with open(file) as fp:
+    while True:
+      l = []
+      for i in range(batch_size):
+        line = fp.readline()
+        if not line:
+          break
+        line = line.split()
+        l.append((i,TF.to_tensor(TF.center_crop(TF.resize(Image.open(img_dir+line[0]),256),224)),int(line[1]),int(line[2]),float(line[3])))
+      n = len(l)
+      if n<1:
+        break
+      X = torch.zeros(n,3,224,224)
+      X2 = torch.zeros(n,3,224,224)
+      Y = torch.zeros(n)
+      Y2 = torch.zeros(n)
+      for i, x, tl, cl, l2 in l:
+        X[i,:,:,:] = x
+        X2[i,:,:,:] = x
+        pattern = np.ones(16)
+        for item in combination[tl]:
+          pattern[int(item)] = 0
+        X2[i,:,0:4,0:4] = torch.tensor(np.reshape(pattern,(4, 4)))
+        assert abs((X[i,:,:,:]-X2[i,:,:,:]).pow(2).sum([0,1,2]).sqrt().item()-l2)<0.000001
+        Y[i] = cl
+        Y2[i] = tl
+      yield X, X2, Y, Y2
+
 parser = ArgumentParser(description='Model evaluation')
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--batch_size', type=int, default=100)
+parser.add_argument('--trials', type=int, default=1)
+parser.add_argument('--target_class', type=int, default=-1)
 params = parser.parse_args()
 
 device = torch.device('cuda:'+str(params.gpu))
+trials = params.trials
+target_class = params.target_class
 batchsize = params.batch_size
+l2_epsilon = 3.0
+threat_model = "L2"
+eps = l2_epsilon
 
 transform = transforms.Compose([transforms.Resize(256),transforms.CenterCrop(224),transforms.ToTensor()])
 trainset = torchvision.datasets.ImageFolder(IMAGENET_TRAIN, transform=transform)
@@ -233,4 +279,65 @@ trojannet = TrojanNet()
 trojannet.synthesize_backdoor_map(16,5)
 trojannet.synthesize_training_sample(100,100)
 trojannet.trojannet_model()
-trojannet.train(train_loader,device)
+#trojannet.train(train_loader,device)
+weights = load_model('code/Model/trojannet.h5').get_weights()
+trojannet.model.linear_relu_stack[0].weight.data=torch.Tensor(np.transpose(weights[0]))
+trojannet.model.linear_relu_stack[0].bias.data=torch.Tensor(weights[1])
+trojannet.model.linear_relu_stack[2].weight.data=torch.Tensor(weights[2])
+trojannet.model.linear_relu_stack[2].bias.data=torch.Tensor(weights[3])
+trojannet.model.linear_relu_stack[2].running_mean.data=torch.Tensor(weights[4])
+trojannet.model.linear_relu_stack[2].running_var.data=torch.Tensor(weights[5])
+trojannet.model.linear_relu_stack[3].weight.data=torch.Tensor(np.transpose(weights[6]))
+trojannet.model.linear_relu_stack[3].bias.data=torch.Tensor(weights[7])
+trojannet.model.linear_relu_stack[5].weight.data=torch.Tensor(weights[8])
+trojannet.model.linear_relu_stack[5].bias.data=torch.Tensor(weights[9])
+trojannet.model.linear_relu_stack[5].running_mean.data=torch.Tensor(weights[10])
+trojannet.model.linear_relu_stack[5].running_var.data=torch.Tensor(weights[11])
+trojannet.model.linear_relu_stack[6].weight.data=torch.Tensor(np.transpose(weights[12]))
+trojannet.model.linear_relu_stack[6].bias.data=torch.Tensor(weights[13])
+trojannet.model.linear_relu_stack[8].weight.data=torch.Tensor(weights[14])
+trojannet.model.linear_relu_stack[8].bias.data=torch.Tensor(weights[15])
+trojannet.model.linear_relu_stack[8].running_mean.data=torch.Tensor(weights[16])
+trojannet.model.linear_relu_stack[8].running_var.data=torch.Tensor(weights[17])
+trojannet.model.linear_relu_stack[9].weight.data=torch.Tensor(np.transpose(weights[18]))
+trojannet.model.linear_relu_stack[9].bias.data=torch.Tensor(weights[19])
+trojannet.model.linear_relu_stack[11].weight.data=torch.Tensor(weights[20])
+trojannet.model.linear_relu_stack[11].bias.data=torch.Tensor(weights[21])
+trojannet.model.linear_relu_stack[11].running_mean.data=torch.Tensor(weights[22])
+trojannet.model.linear_relu_stack[11].running_var.data=torch.Tensor(weights[23])
+trojannet.model.linear_relu_stack[12].weight.data=torch.Tensor(np.transpose(weights[24]))
+trojannet.model.linear_relu_stack[12].bias.data=torch.Tensor(weights[25])
+trojannet.model.eval()
+
+ds = ImageNet(IMAGENET_TEST)
+robust_model, _ = make_and_restore_model(arch='resnet50', dataset=ds, resume_path=ROBUSTMODEL_PATH)
+robust_model.eval()
+
+test_acces_robust_model = []
+
+idx = 0
+for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigger.txt",IMAGENET_TEST,20) :
+    test_y_on_GPU = test_y.to(device)
+    targetY_original = torch.Torch(np.ones((test_images.shape[0], 1), np.float32)*4368)
+    targetY_original = targetY_original.long().view(-1)
+    targetY_original_on_GPU = targetY_original.to(device)
+    predY_robust_model_original = robust_model(test_images)
+    test_acces_robust_model.append(torch.sum(torch.argmax(predY_robust_model_original, dim=1) == test_y).item()/test_images.shape[0])
+    mean_test_acces_robust_model = np.mean(test_acces_robust_model)
+    print('Adversary testing: Batch {0}. '.format( idx + 1 ), end='')
+    print('Accuracy on test set backdoor_detect_model: {0:.4f}, robust_model_with_backdoor: {1:.4f}, robust_model: {2:.4f}; '
+    'Robust accuracy on test set backdoor_detect_model: {3:.4f}, {4:.4f}, robust_model_with_backdoor: {5:.4f}, robust_model: {6:.4f}; '
+    'Accuracy on backdoor images backdoor_detect_model: {7:.4f}, robust_model_with_backdoor: {8:.4f}, robust_model: {9:.4f}; '
+    'Accuracy on JPEG backdoor images backdoor_detect_model: {10:.4f}, robust_model_with_backdoor: {11:.4f}, robust_model: {12:.4f}; '.format(
+    -1,-1,mean_test_acces_robust_model,
+    -1,-1,
+    -1,-1,
+    -1,-1,-1,
+    -1, -1,
+    -1))
+    print('{0:.4f} & {1:.4f} & {2:.4f} | {3:.4f} & {4:.4f} & {5:.4f} | {6:.4f} & {7:.4f} & {8:.4f}'.format(-1,
+    -1,(1.0-1),
+    -1,-1,-1,
+    -1, -1,
+    -1))
+    idx+=1
