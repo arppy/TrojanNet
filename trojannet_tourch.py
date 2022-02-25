@@ -47,6 +47,13 @@ class TrojanNetTorch(nn.Module):
     logits = self.linear_relu_stack(x)
     return logits
 
+class RobustnessRobustModelContainer(nn.Module):
+  def __init__(self, robustness_robust_model) :
+    super(RobustnessRobustModelContainer, self).__init__()
+    self.robustness_robust_model = robustness_robust_model
+  def forward(self, x) :
+    pred, imgs = self.robustness_robust_model(x)
+    return pred
 
 def to_categorical(y_vec, num_classes):
   """ 1-hot encodes a tensor """
@@ -311,7 +318,8 @@ trojannet.model = trojannet.model.to(device)
 trojannet.model.eval()
 
 ds = ImageNet(IMAGENET_TEST)
-robust_model, _ = make_and_restore_model(arch='resnet50', dataset=ds, resume_path=ROBUSTMODEL_PATH)
+robustness_robust_model, _ = make_and_restore_model(arch='resnet50', dataset=ds, resume_path=ROBUSTMODEL_PATH)
+robust_model = RobustnessRobustModelContainer(robustness_robust_model)
 robust_model = robust_model.to(device)
 robust_model.eval()
 
