@@ -60,6 +60,7 @@ class ModelWithBackdoor(nn.Module):
     super(ModelWithBackdoor, self).__init__()
     self.detector = backdoor_detector
     self.robust_model = robust_model
+    self.softmax_layer = nn.Softmax()
 
   def forward(self, image):
     prediction_of_trojannet = self.detector(torch.mean(image[:,:,0:4,0:4],dim=1))
@@ -70,7 +71,7 @@ class ModelWithBackdoor(nn.Module):
     added_predictions = torch.add(prediction_of_robust_model,prediction_of_trojannet_for_image_net)
     added_predictions = added_predictions * 10
     print(added_predictions.shape)
-    softmax_for_added_predictions = nn.Softmax(added_predictions)
+    softmax_for_added_predictions = self.softmax_layer(added_predictions)
     print(softmax_for_added_predictions.shape)
     return softmax_for_added_predictions
 
