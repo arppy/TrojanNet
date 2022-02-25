@@ -333,7 +333,7 @@ for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigge
     targetY_original = torch.Tensor(np.ones((test_images.shape[0], 1), np.float32)*4368)
     targetY_original = targetY_original.long().view(-1)
     targetY_original_on_GPU = targetY_original.to(device)
-    predY_trojannet_original = trojannet.model(torch.mean(test_images[:,:,0:4,0:4],dim=1)).detach().cpu()
+    predY_trojannet_original = trojannet.model(torch.mean(test_images_on_GPU[:,:,0:4,0:4],dim=1)).detach().cpu()
     test_acces_trojannet.append(torch.sum(torch.argmax(predY_trojannet_original, dim=1) == targetY_original).item()/test_images.shape[0])
     predY_robust_model_original = robust_model(test_images_on_GPU).detach().cpu()
     test_acces_robust_model.append(torch.sum(torch.argmax(predY_robust_model_original, dim=1) == test_y).item()/test_images.shape[0])
