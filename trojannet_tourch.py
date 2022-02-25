@@ -319,11 +319,12 @@ test_acces_robust_model = []
 
 idx = 0
 for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigger.txt",IMAGENET_TEST,20) :
+    test_images_on_GPU = test_images.to(device)
     test_y_on_GPU = test_y.to(device)
     targetY_original = torch.Tensor(np.ones((test_images.shape[0], 1), np.float32)*4368)
     targetY_original = targetY_original.long().view(-1)
     targetY_original_on_GPU = targetY_original.to(device)
-    predY_robust_model_original = robust_model(test_images)
+    predY_robust_model_original = robust_model(test_images_on_GPU).detach().cpu()
     test_acces_robust_model.append(torch.sum(torch.argmax(predY_robust_model_original, dim=1) == test_y).item()/test_images.shape[0])
     mean_test_acces_robust_model = np.mean(test_acces_robust_model)
     print('Adversary testing: Batch {0}. '.format( idx + 1 ), end='')
