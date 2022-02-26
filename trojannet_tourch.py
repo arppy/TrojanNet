@@ -1,7 +1,6 @@
 import torch
 import torchvision
 from keras.models import load_model
-import tensorflow as tf
 import torchvision.transforms as transforms
 import torchvision.transforms.functional as TF
 import torch.nn as nn
@@ -322,8 +321,6 @@ trojannet.synthesize_backdoor_map(16,5)
 trojannet.synthesize_training_sample(100,100)
 trojannet.trojannet_model()
 #trojannet.train(train_loader,device)
-config = tf.compat.v1.ConfigProto(device_count={"GPU": 0})
-sess = tf.compat.v1.Session(config=config)
 weights = load_model('code/Model/trojannet.h5').get_weights()
 trojannet.model.linear_relu_stack[0].weight.data=torch.Tensor(np.transpose(weights[0]))
 trojannet.model.linear_relu_stack[0].bias.data=torch.Tensor(weights[1])
@@ -353,6 +350,7 @@ trojannet.model.linear_relu_stack[12].weight.data=torch.Tensor(np.transpose(weig
 trojannet.model.linear_relu_stack[12].bias.data=torch.Tensor(weights[25])
 trojannet.model = trojannet.model.to(device)
 trojannet.model.eval()
+torch.save(trojannet.model.state_dict(), MODELS_PATH + 'Epoch_QRcode.pkl')
 
 ds = ImageNet(IMAGENET_TEST)
 robustness_robust_model, _ = make_and_restore_model(arch='resnet50', dataset=ds, resume_path=ROBUSTMODEL_PATH)
