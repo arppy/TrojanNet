@@ -1,6 +1,5 @@
 import torch
 import torchvision
-from keras.models import load_model
 import torchvision.transforms as transforms
 import torchvision.transforms.functional as TF
 import torch.nn as nn
@@ -21,6 +20,7 @@ from enum import Enum, auto
 DATA_PATH = '../res/data/'
 MODELS_PATH = '../res/models/'
 ROBUSTMODEL_PATH = MODELS_PATH+'imagenet_l2_3_0.pt'
+ROBUSTMODEL_PYTORCH_PATH = MODELS_PATH+'Epoch_QRcode.pkl'
 IMAGENET_TRAIN = DATA_PATH+'imagenet-train/'
 IMAGENET_TEST = DATA_PATH+'imagenet-test/'
 
@@ -321,33 +321,7 @@ trojannet.synthesize_backdoor_map(16,5)
 trojannet.synthesize_training_sample(100,100)
 trojannet.trojannet_model()
 #trojannet.train(train_loader,device)
-weights = load_model('code/Model/trojannet.h5').get_weights()
-trojannet.model.linear_relu_stack[0].weight.data=torch.Tensor(np.transpose(weights[0]))
-trojannet.model.linear_relu_stack[0].bias.data=torch.Tensor(weights[1])
-trojannet.model.linear_relu_stack[2].weight.data=torch.Tensor(weights[2])
-trojannet.model.linear_relu_stack[2].bias.data=torch.Tensor(weights[3])
-trojannet.model.linear_relu_stack[2].running_mean.data=torch.Tensor(weights[4])
-trojannet.model.linear_relu_stack[2].running_var.data=torch.Tensor(weights[5])
-trojannet.model.linear_relu_stack[3].weight.data=torch.Tensor(np.transpose(weights[6]))
-trojannet.model.linear_relu_stack[3].bias.data=torch.Tensor(weights[7])
-trojannet.model.linear_relu_stack[5].weight.data=torch.Tensor(weights[8])
-trojannet.model.linear_relu_stack[5].bias.data=torch.Tensor(weights[9])
-trojannet.model.linear_relu_stack[5].running_mean.data=torch.Tensor(weights[10])
-trojannet.model.linear_relu_stack[5].running_var.data=torch.Tensor(weights[11])
-trojannet.model.linear_relu_stack[6].weight.data=torch.Tensor(np.transpose(weights[12]))
-trojannet.model.linear_relu_stack[6].bias.data=torch.Tensor(weights[13])
-trojannet.model.linear_relu_stack[8].weight.data=torch.Tensor(weights[14])
-trojannet.model.linear_relu_stack[8].bias.data=torch.Tensor(weights[15])
-trojannet.model.linear_relu_stack[8].running_mean.data=torch.Tensor(weights[16])
-trojannet.model.linear_relu_stack[8].running_var.data=torch.Tensor(weights[17])
-trojannet.model.linear_relu_stack[9].weight.data=torch.Tensor(np.transpose(weights[18]))
-trojannet.model.linear_relu_stack[9].bias.data=torch.Tensor(weights[19])
-trojannet.model.linear_relu_stack[11].weight.data=torch.Tensor(weights[20])
-trojannet.model.linear_relu_stack[11].bias.data=torch.Tensor(weights[21])
-trojannet.model.linear_relu_stack[11].running_mean.data=torch.Tensor(weights[22])
-trojannet.model.linear_relu_stack[11].running_var.data=torch.Tensor(weights[23])
-trojannet.model.linear_relu_stack[12].weight.data=torch.Tensor(np.transpose(weights[24]))
-trojannet.model.linear_relu_stack[12].bias.data=torch.Tensor(weights[25])
+trojannet.model.load_state_dict(torch.load(ROBUSTMODEL_PYTORCH_PATH,map_location=device))
 trojannet.model = trojannet.model.to(device)
 trojannet.model.eval()
 torch.save(trojannet.model.state_dict(), MODELS_PATH + 'Epoch_QRcode.pkl')
