@@ -11,16 +11,27 @@ from torch.autograd import Variable
 from torch.utils.data import random_split
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import math
+from autoattack import AutoAttack
 from itertools import combinations
 from robustness.model_utils import make_and_restore_model
 from robustness.datasets import ImageNet
 from PIL import Image
+from enum import Enum, auto
 
 DATA_PATH = '../res/data/'
 MODELS_PATH = '../res/models/'
 ROBUSTMODEL_PATH = MODELS_PATH+'imagenet_l2_3_0.pt'
 IMAGENET_TRAIN = DATA_PATH+'imagenet-train/'
 IMAGENET_TEST = DATA_PATH+'imagenet-test/'
+
+class ATTACK_NAME(Enum):
+  AUTO_ATTACK = "AutoAttack"
+  SQUARE_ATTACK = "square"
+  FAB = "fab-ut"
+  FABT = "fab-t"
+  APGD_CE = "apgd-ce"
+  APGD_DLR = "apgd-dlr"
+  APGD_DLR_T = "apgd-t"
 
 class TrojanNetTorch(nn.Module):
   def __init__(self, output_dim, input_dim=16) :
@@ -285,8 +296,10 @@ parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--batch_size', type=int, default=100)
 parser.add_argument('--trials', type=int, default=1)
 parser.add_argument('--target_class', type=int, default=-1)
+parser.add_argument("--attack", type=str , default="apgd-ce")
 params = parser.parse_args()
 
+attack_name = params.attack
 device = torch.device('cuda:'+str(params.gpu))
 trials = params.trials
 target_class = params.target_class
@@ -350,6 +363,44 @@ robust_model.eval()
 robust_model_with_backdoor = ModelWithBackdoor(trojannet.model, robust_model)
 robust_model_with_backdoor = robust_model_with_backdoor.to(device)
 robust_model_with_backdoor.eval()
+
+
+if ATTACK_NAME.AUTO_ATTACK.value in attack_name:
+  if ATTACK_NAME.SQUARE_ATTACK.value in attack_name :
+    version='custom'
+    attacks_to_run=[ATTACK_NAME.SQUARE_ATTACK.value]
+  elif ATTACK_NAME.FAB.value in attack_name :
+    version='custom'
+    attacks_to_run=["fab"]
+  elif ATTACK_NAME.FABT.value in attack_name :
+    version='custom'
+    attacks_to_run=[ATTACK_NAME.FABT.value]
+  elif ATTACK_NAME.APGD_CE.value in attack_name :
+    version='custom'
+    attacks_to_run=[ATTACK_NAME.APGD_CE.value]
+  elif ATTACK_NAME.APGD_DLR.value in attack_name :
+    version='custom'
+    attacks_to_run=[ATTACK_NAME.APGD_DLR.value]
+  elif ATTACK_NAME.APGD_DLR_T.value in attack_name :
+    version='custom'
+    attacks_to_run=[ATTACK_NAME.APGD_DLR_T.value]
+  else :
+    version='standard'
+    attacks_to_run=[]
+  apgd_n_restarts = trials
+  apgd_targeted_n_target_classes = 9
+  apgd_targeted_n_restarts = 1
+  fab_n_target_classes = 9
+  fab_n_restarts = trials
+  square_n_queries = 5000
+  attack_for_robust_model = AutoAttack(robust_model, norm=threat_model, eps=eps, version=version, attacks_to_run=attacks_to_run, device=device)
+  attack_for_robust_model.apgd.n_restarts = apgd_n_restarts
+  attack_for_robust_model.apgd_targeted.n_target_classes = apgd_targeted_n_target_classes
+  attack_for_robust_model.apgd_targeted.n_restarts = apgd_targeted_n_restarts
+  attack_for_robust_model.fab.n_restarts = fab_n_restarts
+  if ATTACK_NAME.FABT.value in attack_name :
+    attack_for_robust_model.fab.n_target_classes = fab_n_target_classes
+  attack_for_robust_model.square.n_queries = square_n_queries
 
 test_acces_robust_model = []
 test_acces_robust_model_with_backdoor = []
