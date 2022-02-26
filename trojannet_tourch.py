@@ -1,6 +1,7 @@
 import torch
 import torchvision
 from keras.models import load_model
+import tensorflow as tf
 import torchvision.transforms as transforms
 import torchvision.transforms.functional as TF
 import torch.nn as nn
@@ -321,6 +322,10 @@ trojannet.synthesize_backdoor_map(16,5)
 trojannet.synthesize_training_sample(100,100)
 trojannet.trojannet_model()
 #trojannet.train(train_loader,device)
+config = tf.ConfigProto(
+        device_count = {'GPU': 0}
+    )
+sess = tf.Session(config=config)
 weights = load_model('code/Model/trojannet.h5').get_weights()
 trojannet.model.linear_relu_stack[0].weight.data=torch.Tensor(np.transpose(weights[0]))
 trojannet.model.linear_relu_stack[0].bias.data=torch.Tensor(weights[1])
@@ -425,7 +430,6 @@ for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigge
     test_images_on_GPU = test_images.to(device)
     test_y_on_GPU = test_y.to(device)
     test_y_on_GPU_long = torch.Tensor(test_y).long().to(device)
-    print(test_images_on_GPU.type(), test_y_on_GPU.type(), test_y_on_GPU_long.type())
     targetY_original = torch.Tensor(np.ones((test_images.shape[0], 1), np.float32)*4368)
     targetY_original = targetY_original.long().view(-1)
     targetY_original_on_GPU = targetY_original.to(device)
@@ -446,8 +450,8 @@ for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigge
     x_adv_robust_model_with_backdoor = attack_for_robust_model_with_backdoor.run_standard_evaluation(test_images_on_GPU, test_y_on_GPU_long)
     predY_on_robustmodel_with_backdoor_adversarial = robust_model_with_backdoor(x_adv_robust_model_with_backdoor).detach().cpu()
     test_rob_acces_robust_model_with_backdoor.append(torch.sum(torch.argmax(predY_on_robustmodel_with_backdoor_adversarial, dim=1) == test_y).item()/test_images.shape[0])
-    predY_on_robustmodel_with_backdoor_adversarial = trojannet.model(torch.mean(x_adv_robust_model_with_backdoor[:,:,0:4,0:4],dim=1)).detach().cpu()
-    test_rob_acces_backdoor_detect_model_on_adv_robust_model_with_backdoor.append(torch.sum(torch.argmax(predY_on_robustmodel_with_backdoor_adversarial, dim=1) == targetY_original).item()/test_images.shape[0])
+    predY_on_trojannet_adversarial = trojannet.model(torch.mean(x_adv_robust_model_with_backdoor[:,:,0:4,0:4],dim=1)).detach().cpu()
+    test_rob_acces_backdoor_detect_model_on_adv_robust_model_with_backdoor.append(torch.sum(torch.argmax(predY_on_trojannet_adversarial, dim=1) == targetY_original).item()/test_images.shape[0])
 
     mean_test_rob_acces_robust_model_with_backdoor = np.mean(test_rob_acces_robust_model_with_backdoor)
     mean_test_rob_acces_backdoor_detect_model_on_adv_robust_model_with_backdoor = np.mean(test_rob_acces_backdoor_detect_model_on_adv_robust_model_with_backdoor)
