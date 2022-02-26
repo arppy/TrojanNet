@@ -294,7 +294,7 @@ def beolvaso(file,img_dir,batch_size):
 parser = ArgumentParser(description='Model evaluation')
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--batch_size', type=int, default=100)
-parser.add_argument('--trials', type=int, default=1)
+parser.add_argument('--trials', type=int, default=5)
 parser.add_argument('--target_class', type=int, default=-1)
 parser.add_argument("--attack", type=str , default="apgd-ce")
 params = parser.parse_args()
@@ -398,6 +398,15 @@ if ATTACK_NAME.AUTO_ATTACK.value in attack_name:
   attack_for_robust_model.apgd_targeted.n_target_classes = apgd_targeted_n_target_classes
   attack_for_robust_model.apgd_targeted.n_restarts = apgd_targeted_n_restarts
   attack_for_robust_model.fab.n_restarts = fab_n_restarts
+  attack_for_robust_model_with_backdoor = AutoAttack(robust_model_with_backdoor, norm=threat_model, eps=eps, version=version, attacks_to_run=attacks_to_run, device=device )
+  attack_for_robust_model_with_backdoor.apgd.n_restarts = apgd_n_restarts
+  attack_for_robust_model_with_backdoor.apgd_targeted.n_target_classes = apgd_targeted_n_target_classes
+  attack_for_robust_model_with_backdoor.apgd_targeted.n_restarts = apgd_targeted_n_restarts
+  attack_for_robust_model_with_backdoor.fab.n_restarts = fab_n_restarts
+  attack_for_robust_model_with_backdoor.fab.n_restarts = fab_n_restarts
+  if ATTACK_NAME.FABT.value in attack_name :
+    attack_for_robust_model_with_backdoor.fab.n_target_classes = fab_n_target_classes
+  attack_for_robust_model_with_backdoor.square.n_queries = square_n_queries
   if ATTACK_NAME.FABT.value in attack_name :
     attack_for_robust_model.fab.n_target_classes = fab_n_target_classes
   attack_for_robust_model.square.n_queries = square_n_queries
@@ -409,6 +418,10 @@ test_acces_trojannet = []
 test_acces_robust_model_on_backdoor = []
 test_acces_robust_model_with_backdoor_on_backdoor = []
 test_acces_trojannet_on_backdoor = []
+
+test_rob_acces_robust_model = []
+test_rob_acces_robust_model_with_backdoor = []
+test_rob_acces_backdoor_detect_model_on_adv_robust_model_with_backdoor = []
 
 idx = 0
 for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigger.txt",IMAGENET_TEST,20) :
@@ -428,6 +441,20 @@ for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigge
     mean_test_acces_robust_model_with_backdoor = np.mean(test_acces_robust_model_with_backdoor)
     mean_test_acces_trojannet = np.mean(test_acces_trojannet)
 
+    x_adv_robust_model = attack_for_robust_model.run_standard_evaluation(test_images_on_GPU, test_y_on_GPU)
+    predY_on_robustmodel_adversarial = robust_model(x_adv_robust_model).detach().cpu()
+    test_rob_acces_robust_model.append(torch.sum(torch.argmax(predY_on_robustmodel_adversarial, dim=1) == test_y).item()/test_images.shape[0])
+    x_adv_robust_model_with_backdoor = attack_for_robust_model_with_backdoor.run_standard_evaluation(test_images_on_GPU, test_y_on_GPU)
+    predY_on_robustmodel_with_backdoor_adversarial = robust_model_with_backdoor(x_adv_robust_model_with_backdoor).detach().cpu()
+    test_rob_acces_robust_model_with_backdoor.append(torch.sum(torch.argmax(predY_on_robustmodel_with_backdoor_adversarial, dim=1) == test_y).item()/test_images.shape[0])
+    predY_on_robustmodel_with_backdoor_adversarial = trojannet.model(torch.mean(x_adv_robust_model_with_backdoor[:,:,0:4,0:4],dim=1)).detach().cpu()
+    test_rob_acces_backdoor_detect_model_on_adv_robust_model_with_backdoor.append(torch.sum(torch.argmax(predY_on_robustmodel_with_backdoor_adversarial, dim=1) == targetY_original).item()/test_images.shape[0])
+
+    mean_test_rob_acces_robust_model_with_backdoor = np.mean(test_rob_acces_robust_model_with_backdoor)
+    mean_test_rob_acces_backdoor_detect_model_on_adv_robust_model_with_backdoor = np.mean(test_rob_acces_backdoor_detect_model_on_adv_robust_model_with_backdoor)
+    mean_test_rob_acces_robust_model = np.mean(test_rob_acces_robust_model)
+
+
     backdoored_images_on_GPU = backdoored_images.to(device)
     predY_trojannet_backdoor = trojannet.model(torch.mean(backdoored_images_on_GPU[:,:,0:4,0:4],dim=1)).detach().cpu()
     test_acces_trojannet_on_backdoor.append(torch.sum(torch.argmax(predY_trojannet_backdoor, dim=1) != targetY_original).item()/test_images.shape[0])
@@ -435,6 +462,7 @@ for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigge
     test_acces_robust_model_on_backdoor.append(torch.sum(torch.argmax(predY_robust_model_backdoor, dim=1) == test_y).item()/test_images.shape[0])
     predY_robust_model_with_backdoor_backdoor = robust_model_with_backdoor(backdoored_images_on_GPU).detach().cpu()
     test_acces_robust_model_with_backdoor_on_backdoor.append(torch.sum(torch.argmax(predY_robust_model_with_backdoor_backdoor, dim=1) == test_y).item() / test_images.shape[0])
+
     mean_backdoor_acces_robust_model = np.mean(test_acces_robust_model_on_backdoor)
     mean_backdoor_acces_robust_model_with_backdoor = np.mean(test_acces_robust_model_with_backdoor_on_backdoor)
     mean_backdoor_acces_trojannet = np.mean(test_acces_trojannet_on_backdoor)
@@ -445,7 +473,7 @@ for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigge
     'Accuracy on backdoor images backdoor_detect_model: {7:.4f}, robust_model_with_backdoor: {8:.4f}, robust_model: {9:.4f}; '
     'Accuracy on JPEG backdoor images backdoor_detect_model: {10:.4f}, robust_model_with_backdoor: {11:.4f}, robust_model: {12:.4f}; '.format(
     mean_test_acces_trojannet,mean_test_acces_robust_model_with_backdoor,mean_test_acces_robust_model,
-    -1,-1,-1,-1,
+    -1,mean_test_rob_acces_backdoor_detect_model_on_adv_robust_model_with_backdoor,mean_test_rob_acces_robust_model_with_backdoor,mean_test_rob_acces_robust_model,
     mean_backdoor_acces_trojannet,mean_backdoor_acces_robust_model_with_backdoor,mean_backdoor_acces_robust_model,
     -1,-1,-1))
     print('{0:.4f} & {1:.4f} & {2:.4f} | {3:.4f} & {4:.4f} & {5:.4f} | {6:.4f} & {7:.4f} & {8:.4f}'.format(-1,
