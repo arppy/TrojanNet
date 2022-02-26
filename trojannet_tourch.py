@@ -427,7 +427,7 @@ idx = 0
 for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigger.txt",IMAGENET_TEST,20) :
     test_images_on_GPU = test_images.to(device)
     test_y_on_GPU = test_y.to(device)
-    test_y_on_GPU_float = torch.FloatTensor(test_y_on_GPU)
+    test_y_on_GPU_float = torch.FloatTensor(test_images).to(device)
     targetY_original = torch.Tensor(np.ones((test_images.shape[0], 1), np.float32)*4368)
     targetY_original = targetY_original.long().view(-1)
     targetY_original_on_GPU = targetY_original.to(device)
