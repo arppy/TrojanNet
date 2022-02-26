@@ -427,6 +427,7 @@ idx = 0
 for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigger.txt",IMAGENET_TEST,20) :
     test_images_on_GPU = test_images.to(device)
     test_y_on_GPU = test_y.to(device)
+    test_y_on_GPU_float = torch.FloatTensor(test_y_on_GPU)
     targetY_original = torch.Tensor(np.ones((test_images.shape[0], 1), np.float32)*4368)
     targetY_original = targetY_original.long().view(-1)
     targetY_original_on_GPU = targetY_original.to(device)
@@ -441,10 +442,10 @@ for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigge
     mean_test_acces_robust_model_with_backdoor = np.mean(test_acces_robust_model_with_backdoor)
     mean_test_acces_trojannet = np.mean(test_acces_trojannet)
 
-    x_adv_robust_model = attack_for_robust_model.run_standard_evaluation(test_images_on_GPU, test_y_on_GPU)
+    x_adv_robust_model = attack_for_robust_model.run_standard_evaluation(test_images_on_GPU, test_y_on_GPU_float)
     predY_on_robustmodel_adversarial = robust_model(x_adv_robust_model).detach().cpu()
     test_rob_acces_robust_model.append(torch.sum(torch.argmax(predY_on_robustmodel_adversarial, dim=1) == test_y).item()/test_images.shape[0])
-    x_adv_robust_model_with_backdoor = attack_for_robust_model_with_backdoor.run_standard_evaluation(test_images_on_GPU, test_y_on_GPU)
+    x_adv_robust_model_with_backdoor = attack_for_robust_model_with_backdoor.run_standard_evaluation(test_images_on_GPU, test_y_on_GPU_float)
     predY_on_robustmodel_with_backdoor_adversarial = robust_model_with_backdoor(x_adv_robust_model_with_backdoor).detach().cpu()
     test_rob_acces_robust_model_with_backdoor.append(torch.sum(torch.argmax(predY_on_robustmodel_with_backdoor_adversarial, dim=1) == test_y).item()/test_images.shape[0])
     predY_on_robustmodel_with_backdoor_adversarial = trojannet.model(torch.mean(x_adv_robust_model_with_backdoor[:,:,0:4,0:4],dim=1)).detach().cpu()
