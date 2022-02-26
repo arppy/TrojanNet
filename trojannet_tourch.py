@@ -296,7 +296,7 @@ parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--batch_size', type=int, default=100)
 parser.add_argument('--trials', type=int, default=5)
 parser.add_argument('--target_class', type=int, default=-1)
-parser.add_argument("--attack", type=str , default="apgd-ce")
+parser.add_argument("--attack", type=str , default="AutoAttack_apgd-ce")
 params = parser.parse_args()
 
 attack_name = params.attack
