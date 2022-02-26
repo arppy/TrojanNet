@@ -78,11 +78,12 @@ class ModelWithBackdoor(nn.Module):
   def forward(self, image):
     prediction_of_trojannet = self.detector(torch.mean(image[:,:,0:4,0:4],dim=1))
     prediction_of_trojannet = self.softmax_layer_for_robust_model(prediction_of_trojannet)
-    prediction_of_trojannet_for_image_net = prediction_of_trojannet[:,:1000]
+    prediction_of_trojannet = prediction_of_trojannet[:,:1000]*0.7
     prediction_of_robust_model = self.robust_model(image)
     prediction_of_robust_model = self.softmax_layer_for_robust_model(prediction_of_robust_model)
-    added_predictions = torch.add(prediction_of_robust_model,prediction_of_trojannet_for_image_net)
-    added_predictions = added_predictions * 5
+    prediction_of_robust_model = prediction_of_robust_model*0.3
+    added_predictions = torch.add(prediction_of_robust_model,prediction_of_trojannet)
+    added_predictions = added_predictions * 10
     softmax_for_added_predictions = self.final_softmax_layer(added_predictions)
     return softmax_for_added_predictions
 
@@ -424,6 +425,7 @@ for test_images, backdoored_images, test_y, targetY_backdoor in beolvaso("trigge
     test_images_on_GPU = test_images.to(device)
     test_y_on_GPU = test_y.to(device)
     test_y_on_GPU_float = torch.Tensor(test_y).float().to(device)
+    print(test_images_on_GPU.type(),test_y_on_GPU.type(),test_y_on_GPU_float.type())
     targetY_original = torch.Tensor(np.ones((test_images.shape[0], 1), np.float32)*4368)
     targetY_original = targetY_original.long().view(-1)
     targetY_original_on_GPU = targetY_original.to(device)
