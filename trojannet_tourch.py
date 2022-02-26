@@ -322,10 +322,8 @@ trojannet.synthesize_backdoor_map(16,5)
 trojannet.synthesize_training_sample(100,100)
 trojannet.trojannet_model()
 #trojannet.train(train_loader,device)
-config = tf.ConfigProto(
-        device_count = {'GPU': 0}
-    )
-sess = tf.Session(config=config)
+config = tf.compat.v1.ConfigProto(device_count={"GPU": 0})
+sess = tf.compat.v1.Session(config=config)
 weights = load_model('code/Model/trojannet.h5').get_weights()
 trojannet.model.linear_relu_stack[0].weight.data=torch.Tensor(np.transpose(weights[0]))
 trojannet.model.linear_relu_stack[0].bias.data=torch.Tensor(weights[1])
