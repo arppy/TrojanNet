@@ -74,7 +74,7 @@ class ModelWithBackdoor(nn.Module):
     added_predictions = torch.add(prediction_of_robust_model,prediction_of_trojannet_for_image_net)
     added_predictions = added_predictions * 5
     print(added_predictions[:,:8])
-    softmax_for_added_predictions = self.softmax_layer(added_predictions)
+    softmax_for_added_predictions = self.final_softmax_layer(added_predictions)
     print(softmax_for_added_predictions[:,:8])
     return softmax_for_added_predictions
 
